@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Zimmet süreci — TO-BE akış</title>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --surface: #ffffff;
+      --text: #1b1f24;
+      --muted: #5c6570;
+      --line: #d8dee6;
+      --accent: #1a56db;
+      --accent-text: #ffffff;
+      --process: #eef1f5;
+      --decision: #f4ead0;
+      --system: #e4e9f7;
+      --start: #1a56db;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Segoe UI, system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+    }
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--line);
+      padding: 20px 24px 12px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    h1 { margin: 0 0 4px; font-size: 22px; font-weight: 650; }
+    .sub { color: var(--muted); font-size: 13px; margin-bottom: 14px; }
+    nav { display: flex; flex-wrap: wrap; gap: 8px; }
+    nav button {
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--text);
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    nav button.active {
+      background: var(--accent);
+      color: var(--accent-text);
+      border-color: var(--accent);
+    }
+    main { max-width: 1100px; margin: 0 auto; padding: 20px 24px 48px; }
+    .note {
+      background: #e8f0fe;
+      border: 1px solid #c5d4f5;
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+    .legend { display: flex; flex-wrap: wrap; gap: 14px; margin: 8px 0 16px; font-size: 12px; color: var(--muted); }
+    .legend span { display: inline-flex; align-items: center; gap: 6px; }
+    .swatch { width: 12px; height: 12px; border-radius: 3px; border: 1px solid #9aa3ad; display: inline-block; }
+    .swatch.diamond { width: 10px; height: 10px; transform: rotate(45deg); border-radius: 1px; }
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .panel h2 { margin: 0 0 8px; font-size: 15px; font-weight: 650; }
+    .panel p { margin: 0 0 12px; color: var(--muted); font-size: 14px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; background: var(--surface); }
+    th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { color: var(--muted); font-weight: 600; font-size: 12px; }
+    .flow-wrap { overflow-x: auto; }
+    svg text { font-family: Segoe UI, system-ui, sans-serif; }
+    footer { color: var(--muted); font-size: 12px; padding-top: 8px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Zimmet süreci — TO-BE akış</h1>
+    <div class="sub">IT Asset sistemi · Logo ERP · LDAP · dijital zimmet · parametrik onay</div>
+    <nav id="tabs"></nav>
+  </header>
+  <main id="app"></main>
+  <script>
+    const TABS = [
+      { id: "ana", label: "Ana akış" },
+      { id: "tahsis", label: "Tahsis & stok" },
+      { id: "hazirlama", label: "Asset hazırlama" },
+      { id: "zimmet", label: "Zimmet & imza" },
+      { id: "transfer", label: "Transfer & sevk" },
+      { id: "ayrilis", label: "Ayrılış & devir" },
+      { id: "durum", label: "Durum & onay" },
+    ];
+
+    const FLOWS = {
+      ana: {
+        nodes: [
+          { id: "ik", label: "İK çalışan kaydı onaylar", sub: "Onboarding başlar", kind: "start" },
+          { id: "ldap", label: "Çalışan bilgisi aktarılır", sub: "LDAP · sicil · lokasyon", kind: "system" },
+          { id: "paket", label: "Ekipman paketi önerilir", sub: "Pozisyon bazlı standart", kind: "system" },
+          { id: "stok", label: "Logo ERP stok sorgusu", sub: "Anlık depo · SN · miktar", kind: "system" },
+          { id: "secim", label: "IT ürün seçer ve ayırır", sub: "Reserved", kind: "process" },
+          { id: "hazir", label: "Asset hazırlama & kontrol", sub: "Hazır cihaz veya montaj", kind: "process" },
+          { id: "onay", label: "Parametrik onay var mı?", kind: "decision" },
+          { id: "onay_bekle", label: "Onay görev listesi", sub: "Tek / çok seviyeli", kind: "process" },
+          { id: "form", label: "Dijital zimmet formu", sub: "Otomatik üretilir", kind: "system" },
+          { id: "imza", label: "Dijital imza / e-onay", sub: "PDF arşivlenir", kind: "process" },
+          { id: "assigned", label: "Zimmet tamam", sub: "Assigned", kind: "end" },
+        ],
+        edges: [
+          ["ik", "ldap"], ["ldap", "paket"], ["paket", "stok"], ["stok", "secim"],
+          ["secim", "hazir"], ["hazir", "onay"],
+          ["onay", "onay_bekle", "Evet"], ["onay", "form", "Hayır"],
+          ["onay_bekle", "form", "Onay"], ["form", "imza"], ["imza", "assigned"],
+        ],
+      },
+      tahsis: {
+        nodes: [
+          { id: "start", label: "İK kaydı onaylandı", sub: "İnsan Kaynakları", kind: "start" },
+          { id: "bilgi", label: "Sisteme bilgi aktarımı", sub: "Ad · sicil · departman · görev · lokasyon", kind: "system" },
+          { id: "oneri", label: "Standart paket önerisi", sub: "Örn. Project Manager paketi", kind: "system" },
+          { id: "guncelle", label: "IT paketi günceller mi?", kind: "decision" },
+          { id: "paket_evet", label: "Paketi güncelle", sub: "IT kullanıcısı", kind: "process" },
+          { id: "paket_hayir", label: "Standart paket", sub: "Değişiklik yok", kind: "process" },
+          { id: "logo", label: "Logo ERP stok çekilir", sub: "Kod · ad · SN · depo · miktar", kind: "system" },
+          { id: "sec", label: "Teslim edilecek ürün seçilir", sub: "IT kullanıcısı", kind: "process" },
+          { id: "reserved", label: "Ürün çalışana ayrılır", sub: "Reserved", kind: "end" },
+        ],
+        edges: [
+          ["start", "bilgi"], ["bilgi", "oneri"], ["oneri", "guncelle"],
+          ["guncelle", "paket_evet", "Evet"], ["guncelle", "paket_hayir", "Hayır"],
+          ["paket_evet", "logo"], ["paket_hayir", "logo"],
+          ["logo", "sec"], ["sec", "reserved"],
+        ],
+      },
+      hazirlama: {
+        nodes: [
+          { id: "start", label: "Ürün Reserved", kind: "start" },
+          { id: "tip", label: "Hazır cihaz mı?", kind: "decision" },
+          { id: "teknik", label: "Teknik doğrulama", sub: "Model · SN · talep eşleşmesi", kind: "process" },
+          { id: "fizik", label: "Fiziksel kontrol", sub: "Hasar · aksesuar · çalışabilirlik", kind: "process" },
+          { id: "yazilim", label: "Yazılım kontrolü", sub: "OS · domain · uygulamalar · güvenlik", kind: "process" },
+          { id: "depo", label: "Depo montaj yapar", sub: "Parça seçimi + montaj", kind: "process" },
+          { id: "it", label: "IT doğrulama", sub: "Donanım · SN · konfig · yazılım", kind: "process" },
+          { id: "ready", label: "Zimmete hazır", sub: "Ready For Assignment", kind: "end" },
+        ],
+        edges: [
+          ["start", "tip"], ["tip", "teknik", "Hazır ürün"], ["tip", "depo", "Toplama PC"],
+          ["teknik", "fizik"], ["fizik", "yazilim"], ["yazilim", "ready"],
+          ["depo", "it"], ["it", "ready"],
+        ],
+      },
+      zimmet: {
+        nodes: [
+          { id: "start", label: "Ready For Assignment", kind: "start" },
+          { id: "sec", label: "Çalışan + asset seçilir", sub: "IT teslimi başlatır", kind: "process" },
+          { id: "auto", label: "Sistem kaydı oluşturur", sub: "Asset · SN · çalışan · tarih", kind: "system" },
+          { id: "form", label: "Dijital zimmet formu", sub: "Otomatik PDF", kind: "system" },
+          { id: "yontem", label: "Tamamlama yöntemi", kind: "decision" },
+          { id: "eonay", label: "Elektronik onay", kind: "process" },
+          { id: "dimza", label: "Dijital imza", kind: "process" },
+          { id: "pdf", label: "PDF çıktısı", kind: "process" },
+          { id: "arsiv", label: "Doküman saklanır", sub: "Assigned", kind: "end" },
+        ],
+        edges: [
+          ["start", "sec"], ["sec", "auto"], ["auto", "form"], ["form", "yontem"],
+          ["yontem", "eonay", "E-onay"], ["yontem", "dimza", "Dijital imza"], ["yontem", "pdf", "PDF"],
+          ["eonay", "arsiv"], ["dimza", "arsiv"], ["pdf", "arsiv"],
+        ],
+      },
+      transfer: {
+        nodes: [
+          { id: "start", label: "Transfer oluştur", sub: "Kaynak · hedef · asset · SN", kind: "start" },
+          { id: "onay", label: "Onay kuralı aktif mi?", kind: "decision" },
+          { id: "onaycilar", label: "Kaynak / hedef onay", sub: "Parametrik · depo sorumluları", kind: "process" },
+          { id: "logo", label: "Logo transfer kaydı", sub: "In Stock → In Transfer", kind: "system" },
+          { id: "irs", label: "Sevk irsaliyesi oluşturulsun mu?", kind: "decision" },
+          { id: "sevk", label: "Logo sevk irsaliyesi", sub: "Numara uygulamaya geri yazılır", kind: "system" },
+          { id: "teslim", label: "Hedef teslim alır", sub: "In Transfer → In Stock", kind: "end" },
+        ],
+        edges: [
+          ["start", "onay"], ["onay", "onaycilar", "Evet"], ["onay", "logo", "Hayır"],
+          ["onaycilar", "logo"], ["logo", "irs"], ["irs", "sevk", "Evet"],
+          ["irs", "teslim", "Hayır"], ["sevk", "teslim"],
+        ],
+      },
+      ayrilis: {
+        nodes: [
+          { id: "ik", label: "İK işten ayrılış başlatır", kind: "start" },
+          { id: "liste", label: "Aktif zimmetler listelenir", sub: "IT Asset sistemi", kind: "system" },
+          { id: "kontrol", label: "IT teslim alma kontrolü", sub: "Ürün · SN · aksesuar · hasar · test", kind: "process" },
+          { id: "sonuc", label: "Cihaz durumu?", kind: "decision" },
+          { id: "reassign", label: "Ready For Reassignment", sub: "Yeniden kullanıma uygun", kind: "end" },
+          { id: "maint", label: "Maintenance", sub: "Bakım gerekiyor", kind: "end" },
+          { id: "retired", label: "Retired", sub: "Kullanılamaz / hurda", kind: "end" },
+        ],
+        edges: [
+          ["ik", "liste"], ["liste", "kontrol"], ["kontrol", "sonuc"],
+          ["sonuc", "reassign", "Uygun"], ["sonuc", "maint", "Bakım"], ["sonuc", "retired", "Hurda"],
+        ],
+      },
+      devir: {
+        nodes: [
+          { id: "start", label: "Ready For Reassignment", kind: "start" },
+          { id: "kullanici", label: "Yeni kullanıcı seçilir", sub: "Depo transferi yok", kind: "process" },
+          { id: "kapat", label: "Eski zimmet kapanır", kind: "system" },
+          { id: "yeni", label: "Yeni zimmet + form", sub: "Asset geçmişi korunur", kind: "end" },
+        ],
+        edges: [["start", "kullanici"], ["kullanici", "kapat"], ["kapat", "yeni"]],
+      },
+      degisim: {
+        nodes: [
+          { id: "start", label: "Cihaz değişikliği talebi", kind: "start" },
+          { id: "yeni_hazir", label: "Yeni cihaz hazırlanır", sub: "Ready For Assignment", kind: "process" },
+          { id: "eski", label: "Mevcut cihaz teslim alınır", sub: "Assigned → Ready For Reassignment", kind: "process" },
+          { id: "ata", label: "Yeni cihaz zimmetlenir", sub: "Ready For Assignment → Assigned", kind: "system" },
+          { id: "form", label: "Yeni zimmet formu", kind: "end" },
+        ],
+        edges: [["start", "yeni_hazir"], ["yeni_hazir", "eski"], ["eski", "ata"], ["ata", "form"]],
+      },
+      onay: {
+        nodes: [
+          { id: "islem", label: "İşlem başlatılır", kind: "start" },
+          { id: "kural", label: "Onay kuralı eşleşir mi?", kind: "decision" },
+          { id: "gorev", label: "Onaycı görev listesi", sub: "Bildirim · e-posta · hatırlatma", kind: "process" },
+          { id: "karar", label: "Onay sonucu?", kind: "decision" },
+          { id: "devam", label: "İşlem kaldığı yerden devam", kind: "end" },
+          { id: "ret", label: "İşlem sonlanır", sub: "Bilgilendirme + audit log", kind: "end" },
+          { id: "direkt", label: "Onaysız devam", sub: "Kural pasif / eşleşmez", kind: "end" },
+        ],
+        edges: [
+          ["islem", "kural"], ["kural", "gorev", "Evet"], ["kural", "direkt", "Hayır"],
+          ["gorev", "karar"], ["karar", "devam", "Evet"], ["karar", "ret", "Hayır"],
+        ],
+      },
+    };
+
+    function layout(flow) {
+      const nodeWidth = 210, nodeHeight = 78, rankGap = 64, nodeGap = 36, padding = 72;
+      const ids = flow.nodes.map((n) => n.id);
+      const incoming = Object.fromEntries(ids.map((id) => [id, []]));
+      flow.edges.forEach(([from, to]) => incoming[to].push(from));
+      const rank = {};
+      const visit = new Set();
+      function getRank(id) {
+        if (rank[id] != null) return rank[id];
+        if (visit.has(id)) return 0;
+        visit.add(id);
+        const preds = incoming[id];
+        rank[id] = preds.length ? Math.max(...preds.map(getRank)) + 1 : 0;
+        return rank[id];
+      }
+      ids.forEach(getRank);
+      const byRank = {};
+      ids.forEach((id) => {
+        (byRank[rank[id]] ||= []).push(id);
+      });
+      const maxRank = Math.max(...Object.keys(byRank).map(Number));
+      let maxWidth = 0;
+      for (let r = 0; r <= maxRank; r++) {
+        const row = byRank[r] || [];
+        maxWidth = Math.max(maxWidth, row.length * nodeWidth + Math.max(0, row.length - 1) * nodeGap);
+      }
+      const positions = {};
+      for (let r = 0; r <= maxRank; r++) {
+        const row = byRank[r] || [];
+        const rowW = row.length * nodeWidth + Math.max(0, row.length - 1) * nodeGap;
+        let x = padding + (maxWidth - rowW) / 2;
+        const y = padding + r * (nodeHeight + rankGap);
+        row.forEach((id) => {
+          positions[id] = { x, y };
+          x += nodeWidth + nodeGap;
+        });
+      }
+      return {
+        positions,
+        width: maxWidth + padding * 2,
+        height: padding * 2 + (maxRank + 1) * nodeHeight + maxRank * rankGap,
+        nodeWidth,
+        nodeHeight,
+      };
+    }
+
+    function fill(kind) {
+      if (kind === "decision") return "var(--decision)";
+      if (kind === "system") return "var(--system)";
+      if (kind === "start" || kind === "end") return "var(--start)";
+      return "var(--process)";
+    }
+    function textFill(kind) {
+      return kind === "start" || kind === "end" ? "var(--accent-text)" : "var(--text)";
+    }
+
+    function wrapLabel(label, max) {
+      if (label.length <= max) return [label];
+      const words = label.split(" ");
+      const lines = [];
+      let cur = "";
+      words.forEach((w) => {
+        const next = cur ? cur + " " + w : w;
+        if (next.length > max && cur) {
+          lines.push(cur);
+          cur = w;
+        } else cur = next;
+      });
+      if (cur) lines.push(cur);
+      return lines.slice(0, 3);
+    }
+
+    function branchSide(label, index, count) {
+      const s = (label || "").toLowerCase();
+      if (s.includes("hayır") || s.includes("ret") || s.includes("toplama") || s.includes("hurda") || s.includes("bakım")) return "left";
+      if (s.includes("evet") || s.includes("onay") || s.includes("hazır") || s.includes("uygun")) return "right";
+      if (count === 2) return index === 0 ? "left" : "right";
+      if (count === 3) return index === 0 ? "left" : index === 1 ? "bottom" : "right";
+      return "bottom";
+    }
+
+    function anchor(pos, kind, side, W, H) {
+      const cx = pos.x + W / 2;
+      const cy = pos.y + H / 2;
+      if (kind === "decision") {
+        if (side === "left") return { x: pos.x, y: cy };
+        if (side === "right") return { x: pos.x + W, y: cy };
+        if (side === "top") return { x: cx, y: pos.y };
+        return { x: cx, y: pos.y + H };
+      }
+      if (side === "left") return { x: pos.x, y: cy };
+      if (side === "right") return { x: pos.x + W, y: cy };
+      if (side === "top") return { x: cx, y: pos.y };
+      return { x: cx, y: pos.y + H };
+    }
+
+    function renderFlow(flow, title) {
+      const L = layout(flow);
+      const nodeMap = Object.fromEntries(flow.nodes.map((n) => [n.id, n]));
+      const markerId = "m-" + title.replace(/\s+/g, "-");
+      const outgoing = {};
+      flow.edges.forEach((e) => {
+        (outgoing[e[0]] ||= []).push(e);
+      });
+      const sideOf = {};
+      Object.keys(outgoing).forEach((from) => {
+        const list = outgoing[from];
+        list.forEach((e, i) => {
+          sideOf[e[0] + "->" + e[1]] = list.length === 1 ? "bottom" : branchSide(e[2], i, list.length);
+        });
+        if (list.length === 2) {
+          const sides = list.map((e) => sideOf[e[0] + "->" + e[1]]);
+          if (sides[0] === sides[1]) {
+            sideOf[list[0][0] + "->" + list[0][1]] = "left";
+            sideOf[list[1][0] + "->" + list[1][1]] = "right";
+          }
+        }
+        if (list.length === 3) {
+          const used = new Set();
+          list.forEach((e, i) => {
+            let s = sideOf[e[0] + "->" + e[1]];
+            if (used.has(s)) s = ["left", "bottom", "right"].find((x) => !used.has(x));
+            used.add(s);
+            sideOf[e[0] + "->" + e[1]] = s;
+          });
+        }
+      });
+
+      const lines = flow.edges.map(([from, to, label]) => {
+        const a = L.positions[from], b = L.positions[to];
+        const fromKind = nodeMap[from].kind;
+        const toKind = nodeMap[to].kind;
+        const side = sideOf[from + "->" + to] || "bottom";
+        const p1 = anchor(a, fromKind, side, L.nodeWidth, L.nodeHeight);
+        const p2 = anchor(b, toKind, "top", L.nodeWidth, L.nodeHeight);
+        let d;
+        if (side === "left" || side === "right") {
+          const elbow = side === "left" ? p1.x - 18 : p1.x + 18;
+          const midY = (p1.y + p2.y) / 2;
+          d = `M ${p1.x} ${p1.y} L ${elbow} ${p1.y} L ${elbow} ${midY} L ${p2.x} ${midY} L ${p2.x} ${p2.y}`;
+        } else {
+          d = `M ${p1.x} ${p1.y} L ${p2.x} ${p2.y}`;
+        }
+        const lx = side === "left" ? p1.x - 22 : side === "right" ? p1.x + 22 : (p1.x + p2.x) / 2;
+        const ly = side === "bottom" ? (p1.y + p2.y) / 2 - 6 : p1.y - 8;
+        const lbl = label
+          ? `<text x="${lx}" y="${ly}" text-anchor="middle" fill="#3d4650" font-size="11" font-weight="600">${label}</text>`
+          : "";
+        return `<g>
+          <path d="${d}" fill="none" stroke="#9aa3ad" stroke-width="1.5" marker-end="url(#${markerId})" />
+          ${lbl}
+        </g>`;
+      }).join("");
+
+      const boxes = flow.nodes.map((n) => {
+        const p = L.positions[n.id];
+        const color = textFill(n.kind);
+        const cx = p.x + L.nodeWidth / 2;
+        const cy = p.y + L.nodeHeight / 2;
+        const maxChars = n.kind === "decision" ? 14 : 28;
+        const linesOf = wrapLabel(n.label, maxChars);
+        const shape = n.kind === "decision"
+          ? `<polygon points="${cx},${p.y} ${p.x + L.nodeWidth},${cy} ${cx},${p.y + L.nodeHeight} ${p.x},${cy}" fill="${fill(n.kind)}" stroke="#9aa3ad" stroke-width="1.5" />`
+          : `<rect x="${p.x}" y="${p.y}" width="${L.nodeWidth}" height="${L.nodeHeight}" rx="8" fill="${fill(n.kind)}" stroke="#9aa3ad" />`;
+        const startY = n.sub && n.kind !== "decision"
+          ? cy - 6 - (linesOf.length - 1) * 6
+          : cy + 4 - (linesOf.length * 7);
+        const text = linesOf.map((line, i) =>
+          `<text x="${cx}" y="${startY + i * 14}" text-anchor="middle" fill="${color}" font-size="${n.kind === "decision" ? 11 : 12}" font-weight="600">${line}</text>`
+        ).join("");
+        const sub = n.sub && n.kind !== "decision"
+          ? `<text x="${cx}" y="${cy + 16}" text-anchor="middle" fill="${n.kind === "start" || n.kind === "end" ? "#dbe4ff" : "#5c6570"}" font-size="10">${n.sub.length > 32 ? n.sub.slice(0, 30) + "…" : n.sub}</text>`
+          : "";
+        return `<g>${shape}${text}${sub}</g>`;
+      }).join("");
+
+      return `<div class="flow-wrap"><svg width="${L.width}" height="${L.height}">
+        <defs><marker id="${markerId}" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L6,3 L0,6 Z" fill="#9aa3ad" />
+        </marker></defs>
+        ${lines}${boxes}
+      </svg></div>`;
+    }
+
+    function legend() {
+      return `<div class="legend">
+        <span><i class="swatch" style="background:var(--start)"></i> Başlangıç / Bitiş</span>
+        <span><i class="swatch" style="background:var(--process)"></i> Süreç adımı</span>
+        <span><i class="swatch diamond" style="background:var(--decision)"></i> Karar (elmas · Evet / Hayır)</span>
+        <span><i class="swatch" style="background:var(--system)"></i> Sistem / entegrasyon (IT Asset · Logo ERP · LDAP)</span>
+      </div>`;
+    }
+
+    function table(headers, rows) {
+      return `<table><thead><tr>${headers.map((h) => `<th>${h}</th>`).join("")}</tr></thead>
+        <tbody>${rows.map((r) => `<tr>${r.map((c) => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+    }
+
+    const pages = {
+      ana() {
+        return `
+          <div class="note"><b>TO-BE özeti.</b> Tüm zimmet, stok, transfer ve imza adımları tek platformda yürür. Logo ERP stok ve irsaliyenin kaynağıdır; IT Asset sistemi zimmet, dijital form ve yaşam döngüsünü yönetir. Excel ve manuel evrak kalkar.</div>
+          ${legend()}
+          <div class="panel">
+            <h2>İşe girişten zimmete ana akış</h2>
+            ${renderFlow(FLOWS.ana, "ana")}
+          </div>
+          ${table(["#", "Aşama", "Aktör", "Sistem"], [
+            ["1", "Çalışan kaydı / onboarding", "İK", "LDAP → IT Asset"],
+            ["2", "Ekipman paketi + stok seçimi", "IT", "Logo ERP anlık stok"],
+            ["3", "Asset hazırlama ve kontrol", "IT · Depo", "IT Asset"],
+            ["4", "Parametrik onay (varsa)", "Tanımlı onaycılar", "Workflow"],
+            ["5", "Dijital zimmet + imza", "IT · Çalışan", "IT Asset"],
+            ["6", "Asset Assigned", "Sistem", "Logo + IT Asset"],
+          ])}
+        `;
+      },
+      tahsis() {
+        return `
+          <div class="panel">
+            <h2>İşe giriş ve ekipman tahsisi</h2>
+            <p>İK kaydı onaylanınca onboarding başlar. Pozisyona göre standart paket önerilir; IT gerekirse günceller. Seçim anında Logo ERP’den stok, depo ve seri numarası çekilir; seçilen ürün çalışana ayrılır (Reserved).</p>
+            ${renderFlow(FLOWS.tahsis, "tahsis")}
+          </div>
+          <div class="grid">
+            <div class="panel"><h2>Aktarılan çalışan bilgileri</h2>
+              <p>Ad Soyad · Sicil No · Departman · Görev · Lokasyon</p></div>
+            <div class="panel"><h2>Logo stok ekranı</h2>
+              <p>Ürün kodu · ürün adı · seri numarası · depo · stok durumu · miktar</p></div>
+          </div>
+        `;
+      },
+      hazirlama() {
+        return `
+          <div class="panel">
+            <h2>Asset hazırlama ve teknik kontrol</h2>
+            <p>Hazır cihazlarda IT teknik, fiziksel ve yazılım kontrollerini yapar. Toplama bilgisayarda montaj depoya aittir; ardından IT donanım, seri, konfigürasyon ve yazılımı doğrular. Uygun cihaz Ready For Assignment olur.</p>
+            ${renderFlow(FLOWS.hazirlama, "hazirlama")}
+          </div>
+        `;
+      },
+      zimmet() {
+        return `
+          <div class="panel">
+            <h2>Zimmet oluşturma ve dijital imza</h2>
+            <p>IT çalışanı ve asset’i seçip teslimi başlatır. Sistem formu otomatik üretir; elektronik onay, dijital imza veya PDF ile tamamlanır. İmzalı doküman sistemde saklanır.</p>
+            ${renderFlow(FLOWS.zimmet, "zimmet")}
+          </div>
+          ${table(["Form bölümü", "Alanlar"], [
+            ["Çalışan", "Ad Soyad · Sicil No · Departman"],
+            ["Asset", "Ürün adı · marka · model · SN · asset no"],
+            ["Teslim", "Teslim eden · teslim alan · teslim tarihi"],
+          ])}
+        `;
+      },
+      transfer() {
+        return `
+          <div class="panel">
+            <h2>Depolar / lokasyonlar arası transfer</h2>
+            <p>Kaynak-hedef depo, asset, miktar ve seri seçilir. Sistem Logo’da transfer kaydı açar. Durum In Stock → In Transfer → teslimde tekrar In Stock olur. İstenirse sevk irsaliyesi aynı ekrandan üretilir.</p>
+            ${renderFlow(FLOWS.transfer, "transfer")}
+          </div>
+        `;
+      },
+      ayrilis() {
+        return `
+          <div class="panel">
+            <h2>İşten ayrılış ve iade</h2>
+            <p>İK ayrılışı başlatır; sistem aktif zimmetleri listeler. IT ürün, seri, aksesuar, hasar ve çalışma testini yapar. Sonuç cihaza göre Ready For Reassignment, Maintenance veya Retired olur.</p>
+            ${renderFlow(FLOWS.ayrilis, "ayrilis")}
+          </div>
+          <div class="grid">
+            <div class="panel">
+              <h2>Zimmet devri (reassignment)</h2>
+              <p>Uygun cihaz depoya gitmeden yeni kullanıcıya atanır. Eski zimmet kapanır, yeni form üretilir, geçmiş korunur.</p>
+              ${renderFlow(FLOWS.devir, "devir")}
+            </div>
+            <div class="panel">
+              <h2>Cihaz değişikliği</h2>
+              <p>Yeni cihaz hazırlanır, mevcut cihaz teslim alınır. Eski Ready For Reassignment, yeni Assigned olur; form otomatik üretilir.</p>
+              ${renderFlow(FLOWS.degisim, "degisim")}
+            </div>
+          </div>
+        `;
+      },
+      durum() {
+        return `
+          <div class="panel">
+            <h2>Asset durum yaşam döngüsü</h2>
+            ${table(["Durum", "Anlam", "Tipik geçiş"], [
+              ["In Stock", "Depoda", "Transfer / zimmet hazırlığı"],
+              ["Reserved", "Kullanıcı için ayrıldı", "Stok seçimi sonrası"],
+              ["In Transfer", "Transfer sürecinde", "Depolar / lokasyonlar arası"],
+              ["Ready For Assignment", "Zimmete hazır", "Kontrol tamam"],
+              ["Assigned", "Kullanıcı zimmetinde", "İmza sonrası"],
+              ["Returned", "İade alındı", "Ayrılış / değişim"],
+              ["Ready For Reassignment", "Yeniden zimmetlenebilir", "Uygun iade"],
+              ["Maintenance", "Bakımda", "Hasar / arıza"],
+              ["Retired", "Hurdaya ayrıldı", "Kullanılamaz"],
+              ["Lost / Stolen", "Kayıp / çalıntı", "İstisna durum"],
+            ])}
+          </div>
+          <div class="panel">
+            <h2>Parametrik onay</h2>
+            <p>Onaylar koda gömülmez; yönetici kural tanımlar. Tek veya çok seviyeli olabilir. Onaycılar sabit kullanıcı, yönetici hiyerarşisi, rol, lokasyon veya departmana göre belirlenir.</p>
+            ${renderFlow(FLOWS.onay, "onay")}
+            ${table(["Süreç", "Onay örneği"], [
+              ["Yeni zimmet / ek ekipman", "Standart pakette onay yok; özel üründe yönetici"],
+              ["Cihaz değişimi · zimmet devri · iade", "İşlem tipine göre kural"],
+              ["Depo / lokasyon transferi", "Kaynak ve hedef depo sorumluları"],
+              ["Sevk irsaliyesi · hurda", "IT yöneticisi onayı"],
+              ["Satın alma / standart dışı talep", "Maliyet eşiği + bütçe sorumlusu"],
+            ])}
+          </div>
+          <div class="note"><b>LDAP.</b> Ad, e-posta, departman, ünvan, lokasyon, yönetici ve kullanıcı durumu dizin servisinden alınır. Workflow onaycıları bu bilgiden otomatik çözülür.</div>
+        `;
+      },
+    };
+
+    let current = new URLSearchParams(location.search).get("tab") || "ana";
+    if (!pages[current]) current = "ana";
+
+    function render() {
+      const nav = document.getElementById("tabs");
+      nav.innerHTML = TABS.map((t) =>
+        `<button class="${t.id === current ? "active" : ""}" data-tab="${t.id}">${t.label}</button>`
+      ).join("");
+      nav.querySelectorAll("button").forEach((btn) => {
+        btn.onclick = () => {
+          current = btn.dataset.tab;
+          history.replaceState(null, "", "?tab=" + current);
+          render();
+        };
+      });
+      document.getElementById("app").innerHTML = pages[current]() +
+        `<footer>Kaynak: TO-BE Süreç Dokümanı · IT Asset, Zimmet ve Transfer Yönetim Sistemi</footer>`;
+    }
+    render();
+  </script>
+</body>
+</html>

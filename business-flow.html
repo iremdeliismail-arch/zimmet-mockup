@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Zimmet Business Flow</title>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --surface: #ffffff;
+      --text: #1b1f24;
+      --muted: #5c6570;
+      --line: #d8dee6;
+      --lane: #f3f5f8;
+      --accent: #1a56db;
+      --accent-text: #ffffff;
+      --manual: #eef1f5;
+      --auto-fill: #f7f8fa;
+      --integ: #e4e9f7;
+      --decision: #f4ead0;
+      --exception: #f8e6e8;
+      --process: #eef1f5;
+      --system: #e4e9f7;
+      --start: #1a56db;
+      --yes: #1f8a65;
+      --no: #c23b4a;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Segoe UI, system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+    }
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--line);
+      padding: 20px 24px 12px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    h1 { margin: 0 0 4px; font-size: 22px; font-weight: 650; }
+    .sub { color: var(--muted); font-size: 13px; margin-bottom: 14px; }
+    nav { display: flex; flex-wrap: wrap; gap: 8px; }
+    nav button {
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--text);
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    nav button.active {
+      background: var(--accent);
+      color: var(--accent-text);
+      border-color: var(--accent);
+    }
+    main { max-width: 1100px; margin: 0 auto; padding: 20px 24px 48px; }
+    .note {
+      background: #e8f0fe;
+      border: 1px solid #c5d4f5;
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+    .legend, .stats { display: flex; flex-wrap: wrap; gap: 14px; margin: 8px 0 16px; }
+    .legend { font-size: 12px; color: var(--muted); }
+    .legend span { display: inline-flex; align-items: center; gap: 6px; }
+    .swatch { width: 12px; height: 12px; border-radius: 3px; border: 1px solid #9aa3ad; display: inline-block; }
+    .swatch.round { border-radius: 10px; background: var(--accent); border-color: var(--accent); width: 22px; height: 12px; }
+    .swatch.diamond {
+      width: 10px; height: 10px; transform: rotate(45deg);
+      background: var(--decision); border-radius: 1px;
+    }
+    .swatch.ex { background: var(--exception); border-color: var(--no); }
+    .stat {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px 16px;
+      min-width: 140px;
+    }
+    .stat b { display: block; font-size: 22px; }
+    .stat span { color: var(--muted); font-size: 12px; }
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .panel h2 { margin: 0 0 8px; font-size: 16px; font-weight: 650; }
+    .panel h3 { margin: 16px 0 8px; font-size: 14px; font-weight: 650; }
+    .panel p { margin: 0 0 12px; color: var(--muted); font-size: 14px; }
+    .flow-wrap { overflow-x: auto; display: flex; justify-content: center; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { color: var(--muted); font-weight: 600; font-size: 12px; }
+    .map { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+    .map-box {
+      border: 1px solid var(--line);
+      background: #eef1f5;
+      padding: 8px 12px;
+      min-width: 110px;
+      text-align: center;
+      font-size: 13px;
+    }
+    .map-box small { display: block; color: var(--muted); font-size: 11px; }
+    .arrow { color: var(--muted); }
+    footer { color: var(--muted); font-size: 12px; padding-top: 8px; }
+    svg text { font-family: Segoe UI, system-ui, sans-serif; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Zimmet ve Asset Business Flow</h1>
+    <div class="sub">IT Asset, zimmet ve transfer yönetim sistemi · yukarıdan aşağı iş akışı</div>
+    <nav id="tabs"></nav>
+  </header>
+  <main id="app"></main>
+  <script src="js/vertical-flow.js"></script>
+  <script>
+    const LANE_NAMES = {
+      ik: "İnsan Kaynakları",
+      it: "IT Kullanıcısı",
+      calisan: "Çalışan",
+      onayci: "Onaycı",
+      sistem: "Sistem",
+      logo: "Logo ERP",
+      ldap: "LDAP / AD",
+    };
+
+    const TABS = [
+      { id: "ozet", label: "Analiz" },
+      { id: "ana", label: "İşe giriş → Zimmet" },
+      { id: "transfer", label: "Transfer ve sevk" },
+      { id: "iade", label: "Ayrılış / devir / değişim" },
+      { id: "onay", label: "Onay altsüreci" },
+      { id: "durum", label: "Durum ve kurallar" },
+    ];
+
+    const FLOWS = {
+      ana: {
+        lanes: ["ik", "ldap", "logo", "sistem", "it", "onayci", "calisan"],
+        nodes: [
+          { id: "a0", lane: "ik", col: 0, label: "İK çalışan kaydı onaylar", sub: "Onboarding başlar", kind: "start" },
+          { id: "a1", lane: "ldap", col: 1, label: "Çalışan bilgisi aktarılır", sub: "LDAP · sicil · lokasyon", kind: "integration" },
+          { id: "a2", lane: "sistem", col: 2, label: "Ekipman paketi önerilir", sub: "Pozisyon bazlı standart", kind: "auto" },
+          { id: "a3", lane: "it", col: 3, label: "IT paketi kontrol eder", sub: "Gerekirse günceller", kind: "manual" },
+          { id: "a4", lane: "logo", col: 4, label: "Logo ERP stok sorgusu", sub: "Anlık depo · SN · miktar", kind: "integration" },
+          { id: "a5", lane: "it", col: 5, label: "IT ürün seçer ve ayırır", sub: "Reserved", kind: "manual" },
+          { id: "a6", lane: "sistem", col: 5, label: "Asset çalışana ayrılır", sub: "Reserved", kind: "auto" },
+          { id: "a7", lane: "it", col: 6, label: "Asset hazırlama & kontrol", sub: "Teknik · fiziksel · yazılım", kind: "manual" },
+          { id: "a8", lane: "it", col: 7, label: "Kontrol başarılı mı?", kind: "decision" },
+          { id: "a9", lane: "it", col: 8, label: "Bakıma al", sub: "Maintenance", kind: "exception" },
+          { id: "a10", lane: "sistem", col: 8, label: "Zimmete hazırla", sub: "Ready For Assignment", kind: "auto" },
+          { id: "a11", lane: "it", col: 9, label: "Zimmet oluştur", sub: "Çalışan + asset seçilir", kind: "manual" },
+          { id: "a12", lane: "sistem", col: 10, label: "Onay kuralını belirle", sub: "Parametrik workflow", kind: "auto" },
+          { id: "a13", lane: "sistem", col: 11, label: "Onay gerekli mi?", kind: "decision" },
+          { id: "a14", lane: "onayci", col: 12, label: "Onayı değerlendir", sub: "Görev listesi", kind: "manual" },
+          { id: "a15", lane: "onayci", col: 13, label: "Onaylandı mı?", kind: "decision" },
+          { id: "a16", lane: "onayci", col: 14, label: "Talebi reddet", sub: "İşlem sonlanır", kind: "exception" },
+          { id: "a17", lane: "sistem", col: 14, label: "Dijital zimmet formu", sub: "Otomatik üretilir", kind: "auto" },
+          { id: "a18", lane: "calisan", col: 15, label: "Dijital imza / e-onay", sub: "PDF arşivlenir", kind: "manual" },
+          { id: "a19", lane: "sistem", col: 16, label: "Formu sakla", sub: "Assigned", kind: "auto" },
+          { id: "a20", lane: "sistem", col: 17, label: "Zimmet tamam", sub: "Assigned", kind: "end" },
+        ],
+        edges: [
+          { from: "a0", to: "a1" }, { from: "a1", to: "a2" }, { from: "a2", to: "a3" },
+          { from: "a3", to: "a4" }, { from: "a4", to: "a5" }, { from: "a5", to: "a7" },
+          { from: "a7", to: "a8" },
+          { from: "a8", to: "a9", label: "Hayır", tone: "no", fromSide: "bottom" },
+          { from: "a8", to: "a10", label: "Evet", tone: "yes" },
+          { from: "a10", to: "a11" }, { from: "a11", to: "a12" }, { from: "a12", to: "a13" },
+          { from: "a13", to: "a14", label: "Evet", tone: "yes" },
+          { from: "a13", to: "a17", label: "Hayır", tone: "no", fromSide: "bottom", toSide: "top" },
+          { from: "a14", to: "a15" },
+          { from: "a15", to: "a16", label: "Hayır", tone: "no", fromSide: "bottom" },
+          { from: "a15", to: "a17", label: "Evet", tone: "yes" },
+          { from: "a17", to: "a18" }, { from: "a18", to: "a19" }, { from: "a19", to: "a20" },
+        ],
+      },
+      transfer: {
+        lanes: ["it", "onayci", "sistem", "logo"],
+        nodes: [
+          { id: "t0", lane: "it", col: 0, label: "Transfer oluştur", kind: "start" },
+          { id: "t1", lane: "sistem", col: 1, label: "Onay kuralını belirle", kind: "auto" },
+          { id: "t2", lane: "sistem", col: 2, label: "Onay gerekli mi?", kind: "decision" },
+          { id: "t3", lane: "onayci", col: 3, label: "Onayı değerlendir", kind: "manual" },
+          { id: "t4", lane: "onayci", col: 4, label: "Onaylandı mı?", kind: "decision" },
+          { id: "t5", lane: "onayci", col: 5, label: "Transferi reddet", kind: "exception", subRow: 1 },
+          { id: "t6", lane: "logo", col: 5, label: "Transfer kaydı oluştur", kind: "integration" },
+          { id: "t7", lane: "sistem", col: 6, label: "Durumu güncelle", kind: "auto", status: "In Transfer" },
+          { id: "t8", lane: "it", col: 7, label: "Sevk irsaliyesi?", kind: "decision" },
+          { id: "t9", lane: "logo", col: 8, label: "İrsaliye oluştur", kind: "integration" },
+          { id: "t10", lane: "sistem", col: 9, label: "İrsaliye no yaz", kind: "auto" },
+          { id: "t11", lane: "it", col: 10, label: "PDF / çıktı / arşiv", kind: "manual" },
+          { id: "t12", lane: "it", col: 11, label: "Hedefte teslim al", kind: "manual" },
+          { id: "t13", lane: "sistem", col: 12, label: "Durumu güncelle", kind: "auto", status: "In Stock" },
+          { id: "t14", lane: "sistem", col: 13, label: "Transfer tamamlandı", kind: "end" },
+        ],
+        edges: [
+          { from: "t0", to: "t1" }, { from: "t1", to: "t2" },
+          { from: "t2", to: "t3", label: "Evet", tone: "yes" },
+          { from: "t2", to: "t6", label: "Hayır", tone: "no", fromSide: "bottom", toSide: "top" },
+          { from: "t3", to: "t4" },
+          { from: "t4", to: "t5", label: "Hayır", tone: "no", fromSide: "bottom" },
+          { from: "t4", to: "t6", label: "Evet", tone: "yes" },
+          { from: "t6", to: "t7" }, { from: "t7", to: "t8" },
+          { from: "t8", to: "t9", label: "Evet", tone: "yes" },
+          { from: "t8", to: "t12", label: "Hayır", tone: "no", fromSide: "bottom" },
+          { from: "t9", to: "t10" }, { from: "t10", to: "t11" }, { from: "t11", to: "t12" },
+          { from: "t12", to: "t13" }, { from: "t13", to: "t14" },
+        ],
+      },
+      ayrilis: {
+        lanes: ["ik", "it", "sistem"],
+        nodes: [
+          { id: "y0", lane: "ik", col: 0, label: "İşten ayrılış başlat", kind: "start" },
+          { id: "y1", lane: "sistem", col: 1, label: "Aktif zimmetleri listele", kind: "auto" },
+          { id: "y2", lane: "it", col: 2, label: "İade kontrolü yap", kind: "manual" },
+          { id: "y3", lane: "it", col: 3, label: "Cihaz durumu?", kind: "decision" },
+          { id: "y4", lane: "sistem", col: 4, label: "Yeniden zimmete hazırla", kind: "end", status: "Ready For Reassignment" },
+          { id: "y5", lane: "sistem", col: 5, label: "Bakıma al", kind: "exception", status: "Maintenance" },
+          { id: "y6", lane: "sistem", col: 6, label: "Hurdaya ayır", kind: "exception", status: "Retired" },
+        ],
+        edges: [
+          { from: "y0", to: "y1" }, { from: "y1", to: "y2" }, { from: "y2", to: "y3" },
+          { from: "y3", to: "y4", label: "Uygun", tone: "yes" },
+          { from: "y3", to: "y5", label: "Bakım", tone: "no", fromSide: "bottom", toSide: "left" },
+          { from: "y3", to: "y6", label: "Kullanılamaz", tone: "no", fromSide: "bottom" },
+        ],
+      },
+      devir: {
+        lanes: ["it", "onayci", "sistem", "calisan"],
+        nodes: [
+          { id: "d0", lane: "it", col: 0, label: "Cihazı teslim al", kind: "start" },
+          { id: "d1", lane: "it", col: 1, label: "Uygunluk kontrolü", kind: "manual" },
+          { id: "d2", lane: "it", col: 2, label: "Yeniden zimmete uygun mu?", kind: "decision" },
+          { id: "d3", lane: "it", col: 3, label: "Bakım / hurda", kind: "exception", subRow: 1 },
+          { id: "d4", lane: "it", col: 3, label: "Yeni kullanıcı seç", kind: "manual", status: "Ready For Reassignment" },
+          { id: "d5", lane: "sistem", col: 4, label: "Onay kuralını belirle", kind: "auto" },
+          { id: "d6", lane: "sistem", col: 5, label: "Onay gerekli mi?", kind: "decision" },
+          { id: "d7", lane: "onayci", col: 6, label: "Onayı değerlendir", kind: "manual" },
+          { id: "d8", lane: "onayci", col: 7, label: "Devri reddet", kind: "exception", subRow: 1 },
+          { id: "d9", lane: "sistem", col: 7, label: "Eski zimmeti kapat", kind: "auto" },
+          { id: "d10", lane: "sistem", col: 8, label: "Yeni zimmet + form", kind: "auto" },
+          { id: "d11", lane: "calisan", col: 9, label: "Dijital imza", kind: "manual" },
+          { id: "d12", lane: "sistem", col: 10, label: "Devir tamamlandı", kind: "end" },
+        ],
+        edges: [
+          { from: "d0", to: "d1" }, { from: "d1", to: "d2" },
+          { from: "d2", to: "d3", label: "Hayır", tone: "no", fromSide: "bottom" },
+          { from: "d2", to: "d4", label: "Evet", tone: "yes" },
+          { from: "d4", to: "d5" }, { from: "d5", to: "d6" },
+          { from: "d6", to: "d7", label: "Evet", tone: "yes" },
+          { from: "d6", to: "d9", label: "Hayır", tone: "no", fromSide: "bottom", toSide: "top" },
+          { from: "d7", to: "d8", label: "Red", tone: "no", fromSide: "bottom" },
+          { from: "d7", to: "d9", label: "Onay", tone: "yes" },
+          { from: "d9", to: "d10" }, { from: "d10", to: "d11" }, { from: "d11", to: "d12" },
+        ],
+      },
+      degisim: {
+        lanes: ["it", "onayci", "sistem", "calisan"],
+        nodes: [
+          { id: "c0", lane: "it", col: 0, label: "Değişim başlat", kind: "start" },
+          { id: "c1", lane: "it", col: 1, label: "Yeni cihazı hazırla", kind: "manual", status: "Ready For Assignment" },
+          { id: "c2", lane: "it", col: 2, label: "Eski cihazı teslim al", kind: "manual" },
+          { id: "c3", lane: "sistem", col: 3, label: "Onay kuralını belirle", kind: "auto" },
+          { id: "c4", lane: "sistem", col: 4, label: "Onay gerekli mi?", kind: "decision" },
+          { id: "c5", lane: "onayci", col: 5, label: "Onayı değerlendir", kind: "manual" },
+          { id: "c6", lane: "onayci", col: 6, label: "Değişimi reddet", kind: "exception", subRow: 1 },
+          { id: "c7", lane: "sistem", col: 6, label: "Eski cihazı serbest bırak", kind: "auto", status: "Ready For Reassignment" },
+          { id: "c8", lane: "sistem", col: 7, label: "Yeni cihazı zimmetle", kind: "auto", status: "Assigned" },
+          { id: "c9", lane: "sistem", col: 8, label: "Yeni form üret", kind: "auto" },
+          { id: "c10", lane: "calisan", col: 9, label: "Dijital imza", kind: "manual" },
+          { id: "c11", lane: "sistem", col: 10, label: "Değişim tamamlandı", kind: "end" },
+        ],
+        edges: [
+          { from: "c0", to: "c1" }, { from: "c1", to: "c2" }, { from: "c2", to: "c3" }, { from: "c3", to: "c4" },
+          { from: "c4", to: "c5", label: "Evet", tone: "yes" },
+          { from: "c4", to: "c7", label: "Hayır", tone: "no", fromSide: "bottom", toSide: "top" },
+          { from: "c5", to: "c6", label: "Red", tone: "no", fromSide: "bottom" },
+          { from: "c5", to: "c7", label: "Onay", tone: "yes" },
+          { from: "c7", to: "c8" }, { from: "c8", to: "c9" }, { from: "c9", to: "c10" }, { from: "c10", to: "c11" },
+        ],
+      },
+      onay: {
+        lanes: ["sistem", "onayci", "ldap"],
+        nodes: [
+          { id: "o0", lane: "sistem", col: 0, label: "İşlem başlar", kind: "start" },
+          { id: "o1", lane: "sistem", col: 1, label: "Onay kuralını değerlendir", kind: "auto" },
+          { id: "o2", lane: "sistem", col: 2, label: "Onay eşleşti mi?", kind: "decision" },
+          { id: "o3", lane: "sistem", col: 3, label: "Onaysız devam", kind: "end", subRow: 1 },
+          { id: "o4", lane: "sistem", col: 3, label: "Görev ata + bildir", kind: "auto", status: "Onay Bekliyor" },
+          { id: "o5", lane: "onayci", col: 4, label: "Onayı değerlendir", kind: "manual" },
+          { id: "o6", lane: "onayci", col: 5, label: "Karar?", kind: "decision" },
+          { id: "o7", lane: "onayci", col: 6, label: "İşlemi sonlandır", kind: "exception", subRow: 1 },
+          { id: "o8", lane: "sistem", col: 6, label: "Sonraki seviye var mı?", kind: "decision" },
+          { id: "o9", lane: "sistem", col: 7, label: "Sonraki onaycıya geç", kind: "auto" },
+          { id: "o10", lane: "sistem", col: 8, label: "İşleme devam", kind: "end", status: "Onaylandı" },
+          { id: "o11", lane: "sistem", col: 4, label: "SLA takip et", kind: "auto", subRow: 1 },
+          { id: "o12", lane: "sistem", col: 5, label: "SLA aşaması?", kind: "decision", subRow: 1 },
+          { id: "o13", lane: "sistem", col: 6, label: "Hatırlatma gönder", kind: "auto", subRow: 1 },
+          { id: "o14", lane: "ldap", col: 7, label: "Üst yöneticiyi bul", kind: "integration" },
+          { id: "o15", lane: "sistem", col: 8, label: "Eskale et", kind: "auto" },
+        ],
+        edges: [
+          { from: "o0", to: "o1" }, { from: "o1", to: "o2" },
+          { from: "o2", to: "o3", label: "Hayır", tone: "no", fromSide: "bottom" },
+          { from: "o2", to: "o4", label: "Evet", tone: "yes" },
+          { from: "o4", to: "o5" }, { from: "o4", to: "o11", fromSide: "bottom", toSide: "top" },
+          { from: "o5", to: "o6" },
+          { from: "o6", to: "o7", label: "Red", tone: "no", fromSide: "bottom" },
+          { from: "o6", to: "o8", label: "Onay", tone: "yes" },
+          { from: "o8", to: "o9", label: "Evet", tone: "yes" },
+          { from: "o8", to: "o10", label: "Hayır", tone: "no", fromSide: "bottom" },
+          { from: "o9", to: "o5", fromSide: "right", toSide: "top" },
+          { from: "o11", to: "o12" },
+          { from: "o12", to: "o13", label: "1-2. gün", tone: "no", fromSide: "bottom" },
+          { from: "o12", to: "o14", label: "3. gün", tone: "yes" },
+          { from: "o14", to: "o15" }, { from: "o15", to: "o5", toSide: "top" },
+        ],
+      },
+      limit: {
+        lanes: ["sistem", "onayci"],
+        nodes: [
+          { id: "l0", lane: "sistem", col: 0, label: "Talep tutarını oku", kind: "start" },
+          { id: "l1", lane: "sistem", col: 1, label: "Tutar 50 bin üzeri mi?", kind: "decision" },
+          { id: "l2", lane: "sistem", col: 2, label: "Onaysız devam", kind: "end", subRow: 1 },
+          { id: "l3", lane: "onayci", col: 2, label: "Yönetici onayı", kind: "manual" },
+          { id: "l4", lane: "sistem", col: 3, label: "Tutar 150 bin üzeri mi?", kind: "decision" },
+          { id: "l5", lane: "onayci", col: 4, label: "Direktör onayı", kind: "manual" },
+          { id: "l6", lane: "sistem", col: 5, label: "Onay tamam", kind: "end" },
+        ],
+        edges: [
+          { from: "l0", to: "l1" },
+          { from: "l1", to: "l2", label: "Hayır", tone: "no", fromSide: "bottom" },
+          { from: "l1", to: "l3", label: "Evet", tone: "yes" },
+          { from: "l3", to: "l4" },
+          { from: "l4", to: "l6", label: "Hayır", tone: "no", fromSide: "bottom" },
+          { from: "l4", to: "l5", label: "Evet", tone: "yes" },
+          { from: "l5", to: "l6" },
+        ],
+      },
+    };
+
+    function legend() {
+      return `<div class="legend">
+        <span><i class="swatch round"></i> Başlangıç / Bitiş</span>
+        <span><i class="swatch" style="background:var(--process)"></i> Süreç adımı</span>
+        <span><i class="swatch diamond"></i> Karar (Evet / Hayır)</span>
+        <span><i class="swatch" style="background:var(--system)"></i> Sistem / entegrasyon</span>
+        <span><i class="swatch ex"></i> Red / exception</span>
+      </div>`;
+    }
+
+    function table(headers, rows) {
+      return `<table><thead><tr>${headers.map((h) => `<th>${h}</th>`).join("")}</tr></thead>
+        <tbody>${rows.map((r) => `<tr>${r.map((c) => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+    }
+
+    const pages = {
+      ozet() {
+        return `
+          <div class="stats">
+            <div class="stat"><b>6</b><span>Ana iş süreci</span></div>
+            <div class="stat"><b>7</b><span>Aktör / lane</span></div>
+            <div class="stat"><b>2</b><span>Harici entegrasyon</span></div>
+            <div class="stat"><b>12</b><span>Asset durumu</span></div>
+          </div>
+          <div class="note"><b>Kapsam notu.</b> Doküman bir IT Asset, zimmet ve transfer sistemidir. Satın alma siparişi ile fatura eşleştirme süreci tanımlı değildir. “Satın alma ihtiyacı oluşturan talepler” yalnızca onay kapsamına alınabilecek işlem tiplerinden biridir.</div>
+          <div class="panel">
+            <h2>Süreç haritası</h2>
+            <div class="map">
+              ${[["İşe giriş","İK kaydı"],["Tahsis","Paket + stok"],["Hazırlama","Teknik kontrol"],["Zimmet","Form + imza"],["Kullanım","Assigned"]].map((s,i)=>`<div class="map-box"><b>${s[0]}</b><small>${s[1]}</small></div>${i<4?'<span class="arrow">→</span>':''}`).join("")}
+            </div>
+            <p>Kullanım aşamasından ayrılabilecek süreçler</p>
+            <div class="map">
+              ${[["Transfer / sevk","Depolar arası"],["Cihaz değişikliği","Eski iade + yeni zimmet"],["İşten ayrılış","İade kontrolü"],["Zimmet devri","Depo yok"]].map(s=>`<div class="map-box"><b>${s[0]}</b><small>${s[1]}</small></div>`).join("")}
+            </div>
+          </div>
+          <div class="panel">
+            <h2>Aktörler ve sorumluluk</h2>
+            ${table(["Aktör","Rol","Tip"], [
+              ["İnsan Kaynakları","İşe giriş kaydı onayı, işten ayrılış başlatma","Manuel"],
+              ["IT kullanıcısı","Paket, stok seçimi, teknik kontrol, zimmet, transfer, iade","Manuel"],
+              ["Çalışan","Dijital imza veya elektronik onay","Manuel"],
+              ["Onaycı","Yönetici / direktör / CEO — parametrik kurala göre","Manuel"],
+              ["Sistem","Paket önerisi, form, durum, SLA, bildirim, eskalasyon","Otomatik"],
+              ["Logo ERP","Ürün, stok, depo, SN, transfer, sevk irsaliyesi","Entegrasyon"],
+              ["LDAP / AD","Kimlik, yönetici, organizasyon, onaycı tespiti","Entegrasyon"],
+            ])}
+          </div>
+          <div class="panel">
+            <h2>Süreç sınırları</h2>
+            ${table(["Süreç","Başlangıç","Bitiş","Kritik karar"], [
+              ["İşe giriş / tahsis","İK çalışan kaydını onaylar","Asset Reserved","Paket güncelleme (opsiyonel)"],
+              ["Hazırlama","Depodan çıkış","Ready For Assignment","Teknik kontrol başarılı mı?"],
+              ["Zimmet","IT teslimi başlatır","Assigned + arşivlenen form","Onay gerekli mi? / Onaylandı mı?"],
+              ["Transfer","Kaynak-hedef-asset seçilir","Hedefte In Stock","Onay ve sevk irsaliyesi"],
+              ["İşten ayrılış","İK ayrılış başlatır","Reassignment / Maintenance / Retired","Cihaz durumu"],
+              ["Zimmet devri","Uygun cihaz teslim alınır","Yeni zimmet, depo yok","Yeniden zimmete uygun mu?"],
+              ["Cihaz değişikliği","Değişim talebi","Yeni Assigned, eski serbest","Onay gerekli mi?"],
+            ])}
+          </div>
+        `;
+      },
+      ana() {
+        return `
+          ${legend()}
+          <div class="panel">
+            <h2>İşe giriş, tahsis, hazırlama ve zimmet</h2>
+            <p>Başlangıç: İK çalışan kaydını onaylar. Bitiş: zimmet formu imzalanır ve asset Assigned olur. IT paketi gerekirse güncelleyebilir; stok Logo ERP’den anlık okunur.</p>
+            ${renderSwim(FLOWS.ana, "ana")}
+            <p>Statü: Reserved → Ready For Assignment → Assigned. Kontrol başarısızsa Maintenance. Onay reddinde süreç sonlanır.</p>
+          </div>
+        `;
+      },
+      transfer() {
+        return `
+          ${legend()}
+          <div class="panel">
+            <h2>Depolar arası transfer ve sevk irsaliyesi</h2>
+            <p>Kullanıcı kaynak depo, hedef depo, asset, miktar ve seri no seçer. Onay sonrası Logo ERP’de transfer kaydı açılır. Sevk irsaliyesi opsiyoneldir; irsaliye numarası uygulamaya geri yazılır.</p>
+            ${renderSwim(FLOWS.transfer, "transfer")}
+          </div>
+        `;
+      },
+      iade() {
+        return `
+          ${legend()}
+          <div class="panel">
+            <h2>İşten ayrılış ve iade</h2>
+            <p>İK ayrılışı başlatır. Sistem aktif zimmetleri listeler. IT ürün, seri no, aksesuar, hasar ve çalışma testini yapar.</p>
+            ${renderSwim(FLOWS.ayrilis, "ayrilis")}
+          </div>
+          <div class="panel">
+            <h2>Zimmet devri</h2>
+            <p>Uygun cihaz depoya dönmeden yeni kullanıcıya atanır. Sistem eski zimmeti kapatır, yenisini açar, formu üretir ve geçmişi korur.</p>
+            ${renderSwim(FLOWS.devir, "devir")}
+          </div>
+          <div class="panel">
+            <h2>Cihaz değişikliği</h2>
+            <p>Yeni cihaz hazırlanır, mevcut cihaz teslim alınır. Eski asset Ready For Reassignment, yeni asset Assigned olur.</p>
+            ${renderSwim(FLOWS.degisim, "degisim")}
+          </div>
+        `;
+      },
+      onay() {
+        return `
+          ${legend()}
+          <div class="panel">
+            <h2>Parametrik onay, SLA ve eskalasyon</h2>
+            <p>Onay sabit kodlanmaz. Kural; kullanıcı, ürün, işlem tipi ve finansal kriterlere göre seçilir. Onay tamamlanmadan işleme devam edilmez. Ret işlemi sonlandırır. Varsayılan SLA 3 iş günüdür.</p>
+            ${renderSwim(FLOWS.onay, "onay")}
+            <h3>Örnek kural — monitör tutarı</h3>
+            ${renderSwim(FLOWS.limit, "limit")}
+          </div>
+        `;
+      },
+      durum() {
+        return `
+          <div class="panel">
+            <h2>Asset durum modeli</h2>
+            ${table(["Durum","Anlam","Tipik geçiş"], [
+              ["In Stock","Depoda","Transfer veya tahsis"],
+              ["Reserved","Çalışan için ayrıldı","Tahsis sonrası"],
+              ["In Transfer","Transfer sürecinde","In Stock → In Transfer → In Stock"],
+              ["Ready For Assignment","Zimmete hazır","Kontrol sonrası"],
+              ["Assigned","Kullanıcı zimmetinde","İmza sonrası"],
+              ["Returned","İade alındı","Ayrılış / değişim"],
+              ["Ready For Reassignment","Yeniden zimmetlenebilir","Uygun iade"],
+              ["Maintenance","Bakımda","Kontrol başarısız"],
+              ["Retired","Hurda","Kullanılamaz cihaz"],
+              ["Lost","Kayıp","Süreç tanımlı değil"],
+              ["Stolen","Çalıntı","Süreç tanımlı değil"],
+            ])}
+          </div>
+          <div class="note"><b>Dokümanda tanımlı olmayanlar.</b> Lost ve Stolen için iş akışı yok. Fatura–sipariş eşleştirme bu sistemin kapsamı dışındadır.</div>
+        `;
+      },
+    };
+
+    let current = new URLSearchParams(location.search).get("tab") || "ana";
+    if (!pages[current]) current = "ana";
+
+    function render() {
+      const nav = document.getElementById("tabs");
+      nav.innerHTML = TABS.map((t) =>
+        `<button class="${t.id === current ? "active" : ""}" data-tab="${t.id}">${t.label}</button>`
+      ).join("");
+      nav.querySelectorAll("button").forEach((btn) => {
+        btn.onclick = () => {
+          current = btn.dataset.tab;
+          history.replaceState(null, "", "?tab=" + current);
+          render();
+        };
+      });
+      document.getElementById("app").innerHTML = pages[current]() +
+        `<footer>Kaynak: Zimmet Gereksinim Dokümanı · IT Asset, Zimmet ve Transfer Yönetim Sistemi</footer>`;
+    }
+    render();
+  </script>
+</body>
+</html>
