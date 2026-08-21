@@ -15,18 +15,16 @@
       --muted: #5c6570;
       --line: #d8dee6;
       --accent: #0f5f73;
-      --accent-text: #ffffff;
       --process: #eef1f5;
       --decision: #fbf3dc;
       --system: #e6f3f6;
-      --start: #0f5f73;
       --exception: #fdecec;
       --yes: #1f7a4d;
       --no: #b42318;
       --font: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
     }
     * { box-sizing: border-box; }
-    body { margin: 0; font-family: var(--font); background: var(--bg); color: var(--text); line-height: 1.45; }
+    body { margin: 0; font-family: var(--font); background: var(--bg); color: var(--text); }
     header {
       background: var(--surface);
       border-bottom: 1px solid var(--line);
@@ -37,55 +35,36 @@
     .sub { color: var(--muted); font-size: 13px; margin-bottom: 14px; }
     nav { display: flex; flex-wrap: wrap; gap: 8px; }
     nav button {
-      border: 1px solid var(--line);
-      background: var(--surface);
-      color: var(--text);
-      border-radius: 6px;
-      padding: 6px 12px;
-      font-size: 13px;
-      font-family: inherit;
-      cursor: pointer;
+      border: 1px solid var(--line); background: var(--surface); color: var(--text);
+      border-radius: 6px; padding: 6px 12px; font-size: 13px; font-family: inherit; cursor: pointer;
     }
     nav button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
-    main { max-width: 980px; margin: 0 auto; padding: 20px 24px 48px; }
+    main { max-width: 920px; margin: 0 auto; padding: 20px 24px 48px; }
     .note {
-      background: #e6f3f6;
-      border: 1px solid #b7d4dc;
-      border-radius: 8px;
-      padding: 12px 14px;
-      font-size: 14px;
-      margin-bottom: 16px;
+      background: #e6f3f6; border: 1px solid #b7d4dc; border-radius: 8px;
+      padding: 12px 14px; font-size: 14px; margin-bottom: 16px;
     }
-    .legend { display: flex; flex-wrap: wrap; gap: 14px; margin: 8px 0 16px; font-size: 12px; color: var(--muted); }
+    .legend { display: flex; flex-wrap: wrap; gap: 14px; margin: 0 0 16px; font-size: 12px; color: var(--muted); }
     .legend span { display: inline-flex; align-items: center; gap: 6px; }
     .swatch { width: 12px; height: 12px; border-radius: 3px; border: 1px solid #9aa3ad; display: inline-block; }
-    .swatch.diamond { width: 10px; height: 10px; transform: rotate(45deg); border-radius: 1px; }
     .panel {
-      background: var(--surface);
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      padding: 16px;
-      margin-bottom: 16px;
+      background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+      padding: 20px 16px 28px; margin-bottom: 16px;
     }
     .panel h2 { margin: 0 0 8px; font-size: 16px; font-weight: 650; }
-    .panel p { margin: 0 0 12px; color: var(--muted); font-size: 14px; }
-    .flow-wrap { overflow: auto; display: flex; justify-content: center; }
+    .panel p { margin: 0 0 16px; color: var(--muted); font-size: 14px; }
     table { width: 100%; border-collapse: collapse; font-size: 13px; }
     th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
     th { color: var(--muted); font-weight: 600; font-size: 12px; }
-    .stats { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
-    .stat { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; min-width: 140px; }
-    .stat b { display: block; font-size: 22px; }
-    .stat span { color: var(--muted); font-size: 12px; }
     footer { color: var(--muted); font-size: 12px; padding-top: 8px; }
-    svg text { font-family: var(--font); }
-    a { color: var(--accent); }
+    .chart { width: 100%; overflow-x: auto; }
+    .chart svg { display: block; width: 100%; max-width: 800px; height: auto; margin: 0 auto; }
   </style>
 </head>
 <body>
   <header>
     <h1>IT Asset / Zimmet — TO-BE Business Flow</h1>
-    <div class="sub">V2 doküman · kutular yukarıdan aşağı okunur</div>
+    <div class="sub">V2 doküman · ana hat yukarıdan aşağı, Hayır dalları solda</div>
     <nav id="tabs"></nav>
   </header>
   <main id="app"></main>
@@ -99,266 +78,257 @@
       { id: "eslesme", label: "Ekran eşleşmesi" },
     ];
 
-    const FLOWS = {
-      onb: {
-        nodes: [
-          { id: "n1", label: "İK talebi başlatır", sub: "İşe başlangıç", kind: "start" },
-          { id: "n2", label: "LDAP personel bilgisi", sub: "Sicil · ünvan · lokasyon", kind: "system" },
-          { id: "n3", label: "Personel ve tarih seçilir", sub: "İnsan Kaynakları", kind: "process" },
-          { id: "n4", label: "Ünvan paketi önerilir", sub: "Sistem otomasyonu", kind: "system" },
-          { id: "n5", label: "Paket ve stok kontrolü", sub: "Sistem Destek Uzmanı", kind: "process" },
-          { id: "n6", label: "Logo ERP stok sorgusu", sub: "Depo · ürün · miktar", kind: "system" },
-          { id: "n7", label: "Stokta mı?", kind: "decision" },
-          { id: "n7n", label: "Alternatif ürün seç", sub: "Sistem Destek", kind: "process" },
-          { id: "n8", label: "Paket dahilinde mi?", kind: "decision" },
-          { id: "n9", label: "CO / CEO onayı", sub: "Onay Bekliyor", kind: "process" },
-          { id: "n10", label: "Onaylandı mı?", kind: "decision" },
-          { id: "n10n", label: "Destek'e geri dön", sub: "Reddedildi · güncelle / iptal", kind: "exception" },
-          { id: "n11", label: "Seri numarası seç", sub: "Depo Sorumlusu · Logo", kind: "process" },
-          { id: "n12", label: "Sevk irsaliyesi oluştur", sub: "Logo ERP", kind: "system" },
-          { id: "n13", label: "Teslim al ve teknik kontrol", sub: "Sistem Destek", kind: "process" },
-          { id: "n14", label: "Uygun mu?", kind: "decision" },
-          { id: "n14n", label: "Hasar raporu · depo yeniden", sub: "Hasarlı", kind: "exception" },
-          { id: "n15", label: "Zimmet formu oluştur", sub: "Sistem Destek", kind: "process" },
-          { id: "n16", label: "Dijital imza / e-onay", sub: "Çalışan · teslim alan", kind: "process" },
-          { id: "n17", label: "Zimmet tamamlandı", sub: "Tamamlandı", kind: "end" },
-        ],
-        edges: [
-          ["n1", "n2"], ["n2", "n3"], ["n3", "n4"], ["n4", "n5"], ["n5", "n6"], ["n6", "n7"],
-          ["n7", "n7n", "Hayır"], ["n7", "n8", "Evet"], ["n7n", "n8"],
-          ["n8", "n11", "Evet"], ["n8", "n9", "Hayır"],
-          ["n9", "n10"], ["n10", "n11", "Evet"], ["n10", "n10n", "Hayır"],
-          ["n11", "n12"], ["n12", "n13"], ["n13", "n14"],
-          ["n14", "n15", "Uygun"], ["n14", "n14n", "Hasarlı"],
-          ["n15", "n16"], ["n16", "n17"],
-        ],
-      },
-      ayrilis: {
-        nodes: [
-          { id: "c0", label: "İK işten ayrılış kaydı", sub: "İade Bekliyor", kind: "start" },
-          { id: "c1", label: "Aktif zimmetleri getir", sub: "Sistem", kind: "system" },
-          { id: "c2", label: "Destek'e bildir", sub: "Uygulama bildirimi", kind: "system" },
-          { id: "c3", label: "Ürünleri teslim al", sub: "Sistem Destek", kind: "process" },
-          { id: "c4", label: "Kontrol formu", sub: "Model · seri · aksesuar · hasar", kind: "process" },
-          { id: "c5", label: "Cihaz durumu seç", sub: "Yeniden / bakım / hurda", kind: "process" },
-          { id: "c6", label: "İade Tamamla", sub: "Sistem Destek", kind: "process" },
-          { id: "c7", label: "Merkez depoya sevk", sub: "Logo ERP irsaliye", kind: "system" },
-          { id: "c8", label: "Asset durumunu güncelle", sub: "Sistem", kind: "system" },
-          { id: "c9", label: "Süreç kapatıldı", sub: "Tamamlandı", kind: "end" },
-        ],
-        edges: [
-          ["c0", "c1"], ["c1", "c2"], ["c2", "c3"], ["c3", "c4"], ["c4", "c5"],
-          ["c5", "c6"], ["c6", "c7"], ["c7", "c8"], ["c8", "c9"],
-        ],
-      },
-      devir: {
-        nodes: [
-          { id: "d0", label: "Zimmet kaydını seç", sub: "Cihaz Zimmetleri", kind: "start" },
-          { id: "d1", label: "Yeni kullanıcı seç", sub: "Sistem Destek · LDAP", kind: "process" },
-          { id: "d2", label: "Aynı lokasyon mu?", kind: "decision" },
-          { id: "d2n", label: "Devir durur", sub: "Lokasyon uyuşmazlığı", kind: "exception" },
-          { id: "d3", label: "Formu personele gönder", sub: "Sistem Destek", kind: "process" },
-          { id: "d4", label: "Eski zimmeti kapat", sub: "Sistem", kind: "system" },
-          { id: "d5", label: "Yeni zimmet oluştur", sub: "Sistem · geçmiş korunur", kind: "system" },
-          { id: "d6", label: "İmza veya e-onay", sub: "Yeni kullanıcı", kind: "process" },
-          { id: "d7", label: "Devir tamamlandı", sub: "Fiziksel sevk yok", kind: "end" },
-        ],
-        edges: [
-          ["d0", "d1"], ["d1", "d2"],
-          ["d2", "d3", "Evet"], ["d2", "d2n", "Hayır"],
-          ["d3", "d4"], ["d4", "d5"], ["d5", "d6"], ["d6", "d7"],
-        ],
-      },
-      degisim: {
-        nodes: [
-          { id: "e0", label: "Çalışan seç", sub: "Sistem Destek", kind: "start" },
-          { id: "e1", label: "Mevcut cihaz ve paket", sub: "Sistem", kind: "system" },
-          { id: "e2", label: "Yeni cihaz seç", sub: "Talep Oluşturuldu", kind: "process" },
-          { id: "e3", label: "Paket dahilinde mi?", kind: "decision" },
-          { id: "e4", label: "CO / CEO onayı", sub: "Onay Bekliyor", kind: "process" },
-          { id: "e5", label: "Onaylandı mı?", kind: "decision" },
-          { id: "e5n", label: "Destek'e geri dön", sub: "Reddedildi", kind: "exception" },
-          { id: "e6", label: "Depo · sevk · teknik", sub: "İşe başlangıç ile aynı hat", kind: "process" },
-          { id: "e7", label: "Eski cihazı teslim al", sub: "Sistem Destek", kind: "process" },
-          { id: "e8", label: "Eski cihaz durumu", sub: "Yeniden / bakım / hurda", kind: "process" },
-          { id: "e9", label: "Teslim ve durum OK?", kind: "decision" },
-          { id: "e9n", label: "Süreç kapanmaz", sub: "Eksik teslim veya durum", kind: "exception" },
-          { id: "e10", label: "Yeni zimmet formu", sub: "Sistem Destek", kind: "process" },
-          { id: "e11", label: "İmza veya e-onay", sub: "Çalışan", kind: "process" },
-          { id: "e12", label: "Değişim tamamlandı", sub: "Eski kapanır · yeni açılır", kind: "end" },
-        ],
-        edges: [
-          ["e0", "e1"], ["e1", "e2"], ["e2", "e3"],
-          ["e3", "e6", "Evet"], ["e3", "e4", "Hayır"],
-          ["e4", "e5"], ["e5", "e6", "Evet"], ["e5", "e5n", "Hayır"],
-          ["e6", "e7"], ["e7", "e8"], ["e8", "e9"],
-          ["e9", "e10", "Evet"], ["e9", "e9n", "Hayır"],
-          ["e10", "e11"], ["e11", "e12"],
-        ],
-      },
-    };
+    const INK = "#1b1f24";
+    const MUTED = "#5c6570";
+    const LINE = "#334155";
+    const YES = "#1f7a4d";
+    const NO = "#b42318";
 
-    function layout(flow) {
-      const nodeWidth = 260;
-      const nodeHeight = 78;
-      const rankGap = 48;
-      const nodeGap = 28;
-      const padding = 28;
-      const ids = flow.nodes.map((n) => n.id);
-      const incoming = Object.fromEntries(ids.map((id) => [id, []]));
-      flow.edges.forEach(([from, to]) => incoming[to].push(from));
-      const rank = {};
-      const visit = new Set();
-      function getRank(id) {
-        if (rank[id] != null) return rank[id];
-        if (visit.has(id)) return 0;
-        visit.add(id);
-        const preds = incoming[id] || [];
-        rank[id] = preds.length ? Math.max(...preds.map(getRank)) + 1 : 0;
-        return rank[id];
-      }
-      ids.forEach(getRank);
-      const byRank = {};
-      ids.forEach((id) => { (byRank[rank[id]] ||= []).push(id); });
-      const maxRank = Math.max(0, ...Object.keys(byRank).map(Number));
-      let maxWidth = nodeWidth;
-      for (let r = 0; r <= maxRank; r++) {
-        const row = byRank[r] || [];
-        maxWidth = Math.max(maxWidth, row.length * nodeWidth + Math.max(0, row.length - 1) * nodeGap);
-      }
-      const positions = {};
-      for (let r = 0; r <= maxRank; r++) {
-        const row = byRank[r] || [];
-        const rowW = row.length * nodeWidth + Math.max(0, row.length - 1) * nodeGap;
-        let x = padding + (maxWidth - rowW) / 2;
-        const y = padding + r * (nodeHeight + rankGap);
-        row.forEach((id) => {
-          positions[id] = { x, y };
-          x += nodeWidth + nodeGap;
-        });
-      }
-      return {
-        positions, nodeWidth, nodeHeight,
-        width: maxWidth + padding * 2,
-        height: padding * 2 + (maxRank + 1) * nodeHeight + maxRank * rankGap,
-      };
+    function esc(s) {
+      return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+    function chart(w, h, inner) {
+      return `<div class="chart"><svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" font-family="IBM Plex Sans, Segoe UI, sans-serif">${inner}</svg></div>`;
+    }
+    function box(x, y, w, h, title, sub, kind) {
+      const fill = kind === "start" || kind === "end" ? "#0f5f73"
+        : kind === "system" ? "#e6f3f6"
+        : kind === "exception" ? "#fdecec" : "#eef1f5";
+      const stroke = kind === "start" || kind === "end" ? "#0f5f73"
+        : kind === "exception" ? NO : "#8b95a1";
+      const tc = kind === "start" || kind === "end" ? "#ffffff" : INK;
+      const sc = kind === "start" || kind === "end" ? "#d5e8ed" : MUTED;
+      const ty = sub ? y + h / 2 - 5 : y + h / 2 + 4;
+      let out = `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="${fill}" stroke="${stroke}" stroke-width="1.5"/>`;
+      out += `<text x="${x + w / 2}" y="${ty}" text-anchor="middle" font-size="13" font-weight="600" fill="${tc}">${esc(title)}</text>`;
+      if (sub) out += `<text x="${x + w / 2}" y="${ty + 16}" text-anchor="middle" font-size="11" fill="${sc}">${esc(sub)}</text>`;
+      return out;
+    }
+    function dia(cx, cy, r, label) {
+      return `<polygon points="${cx},${cy - r} ${cx + r},${cy} ${cx},${cy + r} ${cx - r},${cy}" fill="#fbf3dc" stroke="#5c6570" stroke-width="2"/>` +
+        `<text x="${cx}" y="${cy + 4}" text-anchor="middle" font-size="13" font-weight="600" fill="${INK}">${esc(label)}</text>`;
+    }
+    function head(x, y, dir, color) {
+      const a = 7, b = 13;
+      if (dir === "d") return `<polygon points="${x},${y} ${x - a},${y - b} ${x + a},${y - b}" fill="${color}"/>`;
+      if (dir === "u") return `<polygon points="${x},${y} ${x - a},${y + b} ${x + a},${y + b}" fill="${color}"/>`;
+      if (dir === "r") return `<polygon points="${x},${y} ${x - b},${y - a} ${x - b},${y + a}" fill="${color}"/>`;
+      return `<polygon points="${x},${y} ${x + b},${y - a} ${x + b},${y + a}" fill="${color}"/>`;
+    }
+    function seg(x1, y1, x2, y2, color) {
+      return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="3" stroke-linecap="square"/>`;
+    }
+    function vArr(x, y1, y2, color) {
+      color = color || LINE;
+      return seg(x, y1, x, y2 - 1, color) + head(x, y2, "d", color);
+    }
+    function pathArr(pts, dir, color) {
+      color = color || LINE;
+      const pairs = [];
+      for (let i = 0; i < pts.length; i += 2) pairs.push(pts[i] + "," + pts[i + 1]);
+      return `<polyline points="${pairs.join(" ")}" fill="none" stroke="${color}" stroke-width="3" stroke-linejoin="miter" stroke-linecap="square"/>` +
+        head(pts[pts.length - 2], pts[pts.length - 1], dir, color);
+    }
+    function label(x, y, text, color) {
+      return `<text x="${x}" y="${y}" font-size="12" font-weight="700" fill="${color}">${esc(text)}</text>`;
+    }
+    function note(x, y, text) {
+      return `<text x="${x}" y="${y}" font-size="11" fill="${MUTED}">${esc(text)}</text>`;
     }
 
-    function fill(kind) {
-      if (kind === "decision") return "var(--decision)";
-      if (kind === "system") return "var(--system)";
-      if (kind === "exception") return "var(--exception)";
-      if (kind === "start" || kind === "end") return "var(--start)";
-      return "var(--process)";
-    }
-    function textFill(kind) {
-      return kind === "start" || kind === "end" ? "var(--accent-text)" : "var(--text)";
-    }
-    function wrapLabel(label, max) {
-      if (label.length <= max) return [label];
-      const words = label.split(" ");
-      const lines = [];
-      let cur = "";
-      words.forEach((w) => {
-        const next = cur ? cur + " " + w : w;
-        if (next.length > max && cur) { lines.push(cur); cur = w; }
-        else cur = next;
+    function stackFlow(steps) {
+      const CX = 400, BX = 270, BW = 260, BH = 68, GAP = 34;
+      let y = 16, out = "";
+      steps.forEach((s, i) => {
+        if (i) out += vArr(CX, y - GAP, y);
+        out += box(BX, y, BW, BH, s[0], s[1], s[2]);
+        y += BH + GAP;
       });
-      if (cur) lines.push(cur);
-      return lines.slice(0, 3);
-    }
-    function branchSide(label, index, count) {
-      const s = (label || "").toLowerCase();
-      if (s.includes("hayır") || s.includes("hasar") || s.includes("ret")) return "left";
-      if (s.includes("evet") || s.includes("uygun") || s.includes("onay")) return "right";
-      if (count === 2) return index === 0 ? "left" : "right";
-      return "bottom";
-    }
-    function anchor(pos, kind, side, W, H) {
-      const cx = pos.x + W / 2;
-      const cy = pos.y + H / 2;
-      if (side === "left") return { x: pos.x, y: cy };
-      if (side === "right") return { x: pos.x + W, y: cy };
-      if (side === "top") return { x: cx, y: pos.y };
-      return { x: cx, y: pos.y + H };
+      return chart(800, y + 8, out);
     }
 
-    function renderFlow(flow, title) {
-      const L = layout(flow);
-      const nodeMap = Object.fromEntries(flow.nodes.map((n) => [n.id, n]));
-      const markerId = "m-" + title;
-      const outgoing = {};
-      flow.edges.forEach((e) => { (outgoing[e[0]] ||= []).push(e); });
-      const sideOf = {};
-      Object.keys(outgoing).forEach((from) => {
-        const list = outgoing[from];
-        list.forEach((e, i) => {
-          sideOf[e[0] + "->" + e[1]] = list.length === 1 ? "bottom" : branchSide(e[2], i, list.length);
-        });
-        if (list.length === 2) {
-          const a = sideOf[list[0][0] + "->" + list[0][1]];
-          const b = sideOf[list[1][0] + "->" + list[1][1]];
-          if (a === b) {
-            sideOf[list[0][0] + "->" + list[0][1]] = "left";
-            sideOf[list[1][0] + "->" + list[1][1]] = "right";
-          }
-        }
+    function onbFlow() {
+      const CX = 400, BX = 270, BW = 260, BH = 68, R = 70, L = 130;
+      let o = "";
+
+      const yIk = 16;
+      const yLdap = 118;
+      const yPer = 220;
+      const yPak = 322;
+      const yStok = 424;
+      const yLogo = 526;
+      o += box(BX, yIk, BW, BH, "İK talebi başlatır", "İşe başlangıç", "start");
+      o += vArr(CX, yIk + BH, yLdap);
+      o += box(BX, yLdap, BW, BH, "LDAP personel bilgisi", "Sicil · ünvan · lokasyon", "system");
+      o += vArr(CX, yLdap + BH, yPer);
+      o += box(BX, yPer, BW, BH, "Personel ve tarih seçilir", "İnsan Kaynakları");
+      o += vArr(CX, yPer + BH, yPak);
+      o += box(BX, yPak, BW, BH, "Ünvan paketi önerilir", "Sistem otomasyonu", "system");
+      o += vArr(CX, yPak + BH, yStok);
+      o += box(BX, yStok, BW, BH, "Paket ve stok kontrolü", "Sistem Destek Uzmanı");
+      o += vArr(CX, yStok + BH, yLogo);
+      o += box(BX, yLogo, BW, BH, "Logo ERP stok sorgusu", "Depo · ürün · miktar", "system");
+
+      const d1 = 660;
+      o += vArr(CX, yLogo + BH, d1 - R);
+      o += dia(CX, d1, R, "Stokta mı?");
+
+      const altY = 770;
+      o += pathArr([CX, d1 + R, CX, d1 + R + 18, L, d1 + R + 18, L, altY], "d", NO);
+      o += label(148, d1 + R + 14, "Hayır", NO);
+      o += box(20, altY, 220, BH, "Alternatif ürün seç", "Sistem Destek");
+      o += note(20, altY + BH + 16, "Sonra paket kontrolüne döner");
+
+      const d2 = 980;
+      o += pathArr([L, altY + BH, L, d2 - R - 24, CX, d2 - R - 24, CX, d2 - R], "d", NO);
+      o += vArr(CX, d1 + R, d2 - R, YES);
+      o += label(412, d1 + R + 24, "Evet", YES);
+      o += dia(CX, d2, R, "Paket dahilinde mi?");
+
+      const ceoY = 1090;
+      o += pathArr([CX, d2 + R, CX, d2 + R + 18, L, d2 + R + 18, L, ceoY], "d", NO);
+      o += label(148, d2 + R + 14, "Hayır", NO);
+      o += box(20, ceoY, 220, BH, "CO / CEO onayı", "Onay Bekliyor");
+
+      const d3x = L, d3y = 1258, d3r = 62;
+      o += vArr(L, ceoY + BH, d3y - d3r);
+      o += dia(d3x, d3y, d3r, "Onaylandı mı?");
+
+      const retY = 1370;
+      o += pathArr([d3x - d3r, d3y, 48, d3y, 48, retY], "d", NO);
+      o += label(8, d3y - 8, "Hayır", NO);
+      o += box(8, retY, 200, BH, "Destek'e geri dön", "Güncelle veya iptal", "exception");
+
+      const seriY = 1520;
+      o += pathArr([d3x + d3r, d3y, 250, d3y, 250, seriY - 28, CX, seriY - 28, CX, seriY], "d", YES);
+      o += label(256, d3y - 8, "Evet · depo", YES);
+      o += vArr(CX, d2 + R, seriY, YES);
+      o += label(412, d2 + R + 28, "Evet · onay gerekmez", YES);
+
+      o += box(BX, seriY, BW, BH, "Seri numarası seç", "Depo Sorumlusu · Logo");
+      const yIrs = 1622;
+      const yTek = 1724;
+      o += vArr(CX, seriY + BH, yIrs);
+      o += box(BX, yIrs, BW, BH, "Sevk irsaliyesi oluştur", "Logo ERP", "system");
+      o += vArr(CX, yIrs + BH, yTek);
+      o += box(BX, yTek, BW, BH, "Teslim al ve teknik kontrol", "Sistem Destek");
+
+      const d4 = 1860;
+      o += vArr(CX, yTek + BH, d4 - R);
+      o += dia(CX, d4, R, "Uygun mu?");
+
+      const hasY = 1970;
+      o += pathArr([CX, d4 + R, CX, d4 + R + 18, L, d4 + R + 18, L, hasY], "d", NO);
+      o += label(148, d4 + R + 14, "Hasarlı", NO);
+      o += box(20, hasY, 220, BH, "Hasar raporu", "Depo süreci yeniden başlar", "exception");
+
+      const formY = 2110;
+      o += vArr(CX, d4 + R, formY, YES);
+      o += label(412, d4 + R + 24, "Uygun", YES);
+      o += box(BX, formY, BW, BH, "Zimmet formu oluştur", "Sistem Destek");
+      const yImza = 2212;
+      const yEnd = 2314;
+      o += vArr(CX, formY + BH, yImza);
+      o += box(BX, yImza, BW, BH, "Dijital imza / e-onay", "Çalışan · teslim alan");
+      o += vArr(CX, yImza + BH, yEnd);
+      o += box(BX, yEnd, BW, BH, "Zimmet tamamlandı", "Tamamlandı", "end");
+
+      return chart(800, yEnd + BH + 24, o);
+    }
+
+    function devirFlow() {
+      const CX = 400, BX = 270, BW = 260, BH = 68, R = 70, L = 130;
+      let o = "";
+      const y1 = 16, y2 = 118;
+      o += box(BX, y1, BW, BH, "Zimmet kaydını seç", "Cihaz Zimmetleri", "start");
+      o += vArr(CX, y1 + BH, y2);
+      o += box(BX, y2, BW, BH, "Yeni kullanıcı seç", "Sistem Destek · LDAP");
+      const d1 = 256;
+      o += vArr(CX, y2 + BH, d1 - R);
+      o += dia(CX, d1, R, "Aynı lokasyon mu?");
+      const stopY = 366;
+      o += pathArr([CX, d1 + R, CX, d1 + R + 18, L, d1 + R + 18, L, stopY], "d", NO);
+      o += label(148, d1 + R + 14, "Hayır", NO);
+      o += box(20, stopY, 220, BH, "Devir durur", "Lokasyon uyuşmazlığı", "exception");
+      const y3 = 510;
+      o += vArr(CX, d1 + R, y3, YES);
+      o += label(412, d1 + R + 24, "Evet", YES);
+      o += box(BX, y3, BW, BH, "Formu personele gönder", "Sistem Destek");
+      const steps = [
+        [612, "Eski zimmeti kapat", "Sistem", "system"],
+        [714, "Yeni zimmet oluştur", "Geçmiş korunur", "system"],
+        [816, "İmza veya e-onay", "Yeni kullanıcı", ""],
+        [918, "Devir tamamlandı", "Fiziksel sevk yok", "end"],
+      ];
+      let prev = y3;
+      steps.forEach((s) => {
+        o += vArr(CX, prev + BH, s[0]);
+        o += box(BX, s[0], BW, BH, s[1], s[2], s[3]);
+        prev = s[0];
       });
-      const lines = flow.edges.map(([from, to, label]) => {
-        const a = L.positions[from], b = L.positions[to];
-        const side = sideOf[from + "->" + to] || "bottom";
-        const p1 = anchor(a, nodeMap[from].kind, side, L.nodeWidth, L.nodeHeight);
-        const p2 = anchor(b, nodeMap[to].kind, "top", L.nodeWidth, L.nodeHeight);
-        let d;
-        if (side === "left" || side === "right") {
-          const elbow = side === "left" ? p1.x - 18 : p1.x + 18;
-          const midY = (p1.y + p2.y) / 2;
-          d = `M ${p1.x} ${p1.y} L ${elbow} ${p1.y} L ${elbow} ${midY} L ${p2.x} ${midY} L ${p2.x} ${p2.y}`;
-        } else {
-          d = `M ${p1.x} ${p1.y} L ${p2.x} ${p2.y}`;
-        }
-        const color = (label || "").toLowerCase().includes("hayır") || (label || "").toLowerCase().includes("hasar")
-          ? "var(--no)" : (label || "").toLowerCase().includes("evet") || (label || "").toLowerCase().includes("uygun")
-            ? "var(--yes)" : "#9aa3ad";
-        const lx = side === "left" ? p1.x - 22 : side === "right" ? p1.x + 22 : (p1.x + p2.x) / 2;
-        const ly = side === "bottom" ? (p1.y + p2.y) / 2 - 4 : p1.y - 8;
-        return `<g>
-          <path d="${d}" fill="none" stroke="${color}" stroke-width="1.5" marker-end="url(#${markerId})" />
-          ${label ? `<text x="${lx}" y="${ly}" text-anchor="middle" fill="${color}" font-size="11" font-weight="600">${label}</text>` : ""}
-        </g>`;
-      }).join("");
-      const boxes = flow.nodes.map((n) => {
-        const p = L.positions[n.id];
-        const cx = p.x + L.nodeWidth / 2;
-        const cy = p.y + L.nodeHeight / 2;
-        const linesOf = wrapLabel(n.label, n.kind === "decision" ? 14 : 28);
-        const shape = n.kind === "decision"
-          ? `<polygon points="${cx},${p.y} ${p.x + L.nodeWidth},${cy} ${cx},${p.y + L.nodeHeight} ${p.x},${cy}" fill="${fill(n.kind)}" stroke="#9aa3ad" stroke-width="1.5" />`
-          : `<rect x="${p.x}" y="${p.y}" width="${L.nodeWidth}" height="${L.nodeHeight}" rx="8" fill="${fill(n.kind)}" stroke="${n.kind === "start" || n.kind === "end" ? "var(--accent)" : "#9aa3ad"}" />`;
-        const startY = n.sub && n.kind !== "decision" ? cy - 6 - (linesOf.length - 1) * 6 : cy + 4 - linesOf.length * 7;
-        const text = linesOf.map((line, i) =>
-          `<text x="${cx}" y="${startY + i * 14}" text-anchor="middle" fill="${textFill(n.kind)}" font-size="${n.kind === "decision" ? 11 : 13}" font-weight="600">${line}</text>`
-        ).join("");
-        const sub = n.sub && n.kind !== "decision"
-          ? `<text x="${cx}" y="${cy + 18}" text-anchor="middle" fill="${n.kind === "start" || n.kind === "end" ? "#d5e8ed" : "var(--muted)"}" font-size="11">${n.sub.length > 36 ? n.sub.slice(0, 34) + "…" : n.sub}</text>`
-          : "";
-        return `<g>${shape}${text}${sub}</g>`;
-      }).join("");
-      return `<div class="flow-wrap"><svg width="${L.width}" height="${L.height}">
-        <defs><marker id="${markerId}" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-          <path d="M0,0 L6,3 L0,6 Z" fill="#9aa3ad" />
-        </marker></defs>
-        ${lines}${boxes}
-      </svg></div>`;
+      return chart(800, 918 + BH + 24, o);
+    }
+
+    function degisimFlow() {
+      const CX = 400, BX = 270, BW = 260, BH = 68, R = 70, L = 130;
+      let o = "";
+      const y1 = 16, y2 = 118, y3 = 220;
+      o += box(BX, y1, BW, BH, "Çalışan seç", "Sistem Destek", "start");
+      o += vArr(CX, y1 + BH, y2);
+      o += box(BX, y2, BW, BH, "Mevcut cihaz ve paket", "Sistem", "system");
+      o += vArr(CX, y2 + BH, y3);
+      o += box(BX, y3, BW, BH, "Yeni cihaz seç", "Talep Oluşturuldu");
+      const d2 = 358;
+      o += vArr(CX, y3 + BH, d2 - R);
+      o += dia(CX, d2, R, "Paket dahilinde mi?");
+      const ceoY = 468;
+      o += pathArr([CX, d2 + R, CX, d2 + R + 18, L, d2 + R + 18, L, ceoY], "d", NO);
+      o += label(148, d2 + R + 14, "Hayır", NO);
+      o += box(20, ceoY, 220, BH, "CO / CEO onayı", "Onay Bekliyor");
+      const d3y = 636, d3r = 62;
+      o += vArr(L, ceoY + BH, d3y - d3r);
+      o += dia(L, d3y, d3r, "Onaylandı mı?");
+      const retY = 748;
+      o += pathArr([L - d3r, d3y, 48, d3y, 48, retY], "d", NO);
+      o += label(8, d3y - 8, "Hayır", NO);
+      o += box(8, retY, 200, BH, "Destek'e geri dön", "Reddedildi", "exception");
+      const depoY = 900;
+      o += pathArr([L + d3r, d3y, 250, d3y, 250, depoY - 28, CX, depoY - 28, CX, depoY], "d", YES);
+      o += label(256, d3y - 8, "Evet · depo", YES);
+      o += vArr(CX, d2 + R, depoY, YES);
+      o += label(412, d2 + R + 28, "Evet · onay gerekmez", YES);
+      o += box(BX, depoY, BW, BH, "Depo · sevk · teknik", "İşe başlangıç ile aynı hat");
+      const yEski = 1002, yDurum = 1104;
+      o += vArr(CX, depoY + BH, yEski);
+      o += box(BX, yEski, BW, BH, "Eski cihazı teslim al", "Sistem Destek");
+      o += vArr(CX, yEski + BH, yDurum);
+      o += box(BX, yDurum, BW, BH, "Eski cihaz durumu", "Yeniden / bakım / hurda");
+      const d4 = 1240;
+      o += vArr(CX, yDurum + BH, d4 - R);
+      o += dia(CX, d4, R, "Teslim ve durum OK?");
+      const noY = 1350;
+      o += pathArr([CX, d4 + R, CX, d4 + R + 18, L, d4 + R + 18, L, noY], "d", NO);
+      o += label(148, d4 + R + 14, "Hayır", NO);
+      o += box(20, noY, 220, BH, "Süreç kapanmaz", "Eksik teslim veya durum", "exception");
+      const formY = 1490;
+      o += vArr(CX, d4 + R, formY, YES);
+      o += label(412, d4 + R + 24, "Evet", YES);
+      o += box(BX, formY, BW, BH, "Yeni zimmet formu", "Sistem Destek");
+      const yImza = 1592, yEnd = 1694;
+      o += vArr(CX, formY + BH, yImza);
+      o += box(BX, yImza, BW, BH, "İmza veya e-onay", "Çalışan");
+      o += vArr(CX, yImza + BH, yEnd);
+      o += box(BX, yEnd, BW, BH, "Değişim tamamlandı", "Eski kapanır · yeni açılır", "end");
+      return chart(800, yEnd + BH + 24, o);
     }
 
     function legend() {
       return `<div class="legend">
-        <span><i class="swatch" style="background:var(--start);border-color:var(--start)"></i> Başlangıç / bitiş</span>
-        <span><i class="swatch" style="background:var(--process)"></i> Manuel işlem</span>
-        <span><i class="swatch" style="background:var(--system)"></i> Sistem / entegrasyon</span>
-        <span><i class="swatch diamond" style="background:var(--decision)"></i> Karar</span>
-        <span><i class="swatch" style="background:var(--exception);border-color:var(--no)"></i> Red / istisna</span>
+        <span><i class="swatch" style="background:#0f5f73;border-color:#0f5f73"></i> Başlangıç / bitiş</span>
+        <span><i class="swatch" style="background:#eef1f5"></i> Manuel işlem</span>
+        <span><i class="swatch" style="background:#e6f3f6"></i> Sistem / entegrasyon</span>
+        <span><i class="swatch" style="background:#fbf3dc"></i> Karar</span>
+        <span><i class="swatch" style="background:#fdecec;border-color:${NO}"></i> Red / istisna</span>
       </div>`;
     }
     function table(headers, rows) {
@@ -369,12 +339,7 @@
     const pages = {
       ozet() {
         return `
-          <div class="note"><b>TO-BE.</b> Akış yukarıdan aşağı okunur. Ret sonrası süreç kapanmaz; talep Sistem Destek’e döner.</div>
-          <div class="stats">
-            <div class="stat"><b>4</b><span>Operasyonel süreç</span></div>
-            <div class="stat"><b>5</b><span>Rol</span></div>
-            <div class="stat"><b>2</b><span>LDAP + Logo ERP</span></div>
-          </div>
+          <div class="note"><b>TO-BE.</b> Ana hat yukarıdan aşağı okunur. Hayır / ret solda kalır, Evet sağdan devam eder. Ret sonrası süreç kapanmaz; Destek’e döner.</div>
           ${legend()}
           <div class="panel">
             <h2>Süreçler</h2>
@@ -388,18 +353,29 @@
       },
       onb() {
         return `${legend()}
-          <div class="note"><b>Ret kuralı.</b> CO / CEO reddederse işlem sonlanmaz. Kayıt Destek kuyruğuna döner.</div>
+          <div class="note"><b>Stok kuralı.</b> Stokta mı? → Evet ise doğrudan Paket dahilinde mi? Hayır ise önce alternatif ürün seçilir, sonra yine paket kontrolüne gelinir.</div>
           <div class="panel">
             <h2>İşe başlangıç — uçtan uca</h2>
-            <p>İK talep → Destek stok/paket → gerekirse CO/CEO → depo seri ve irsaliye → teknik kontrol → form → çalışan imzası.</p>
-            ${renderFlow(FLOWS.onb, "onb")}
+            <p>İK talep → Destek stok/paket → gerekirse CO/CEO → depo → teknik → form → çalışan imzası.</p>
+            ${onbFlow()}
           </div>`;
       },
       ayrilis() {
         return `${legend()}
           <div class="panel">
             <h2>İşten ayrılış / zimmet iadesi</h2>
-            ${renderFlow(FLOWS.ayrilis, "off")}
+            ${stackFlow([
+              ["İK işten ayrılış kaydı", "İade Bekliyor", "start"],
+              ["Aktif zimmetleri getir", "Sistem", "system"],
+              ["Destek'e bildir", "Uygulama bildirimi", "system"],
+              ["Ürünleri teslim al", "Sistem Destek"],
+              ["Kontrol formu", "Model · seri · aksesuar · hasar"],
+              ["Cihaz durumu seç", "Yeniden / bakım / hurda"],
+              ["İade Tamamla", "Sistem Destek"],
+              ["Merkez depoya sevk", "Logo ERP irsaliye", "system"],
+              ["Asset durumunu güncelle", "Sistem", "system"],
+              ["Süreç kapatıldı", "Tamamlandı", "end"],
+            ])}
           </div>`;
       },
       devir() {
@@ -407,15 +383,15 @@
           <div class="panel">
             <h2>Zimmet devri</h2>
             <p>Aynı lokasyon zorunlu. Fiziksel depo transferi yok.</p>
-            ${renderFlow(FLOWS.devir, "dev")}
+            ${devirFlow()}
           </div>`;
       },
       degisim() {
         return `${legend()}
           <div class="panel">
             <h2>Cihaz değişimi</h2>
-            <p>Paket dışı onay reddedilirse Destek’e döner. Yeni teslim ve eski cihaz durumu olmadan kapanmaz.</p>
-            ${renderFlow(FLOWS.degisim, "chg")}
+            <p>Paket dışı onay reddedilirse Destek’e döner.</p>
+            ${degisimFlow()}
           </div>`;
       },
       eslesme() {
