@@ -64,7 +64,7 @@
 <body>
   <header>
     <h1>IT Asset / Zimmet — TO-BE Business Flow</h1>
-    <div class="sub">V2 doküman · ana hat yukarıdan aşağı, Hayır dalları solda</div>
+    <div class="sub">V1.1 · 31.08.2026 · ana hat yukarıdan aşağı, Hayır dalları solda</div>
     <nav id="tabs"></nav>
   </header>
   <main id="app"></main>
@@ -151,89 +151,148 @@
       const CX = 400, BX = 270, BW = 260, BH = 68, R = 70, L = 130;
       let o = "";
 
-      const yIk = 16;
-      const yLdap = 118;
-      const yPer = 220;
-      const yPak = 322;
-      const yStok = 424;
-      const yLogo = 526;
+      const yIk = 16, yLdap = 118, yPer = 220, yLoc = 322, yPak = 424, yStok = 526, yLogo = 628;
       o += box(BX, yIk, BW, BH, "İK talebi başlatır", "İşe başlangıç", "start");
       o += vArr(CX, yIk + BH, yLdap);
       o += box(BX, yLdap, BW, BH, "LDAP personel bilgisi", "Sicil · ünvan · lokasyon", "system");
       o += vArr(CX, yLdap + BH, yPer);
       o += box(BX, yPer, BW, BH, "Personel ve tarih seçilir", "İnsan Kaynakları");
-      o += vArr(CX, yPer + BH, yPak);
+      o += vArr(CX, yPer + BH, yLoc);
+      o += box(BX, yLoc, BW, BH, "Çalışma / teslim lokasyonu", "LDAP varsayılan · teslim değiştirilebilir");
+      o += vArr(CX, yLoc + BH, yPak);
       o += box(BX, yPak, BW, BH, "Ünvan paketi önerilir", "Sistem otomasyonu", "system");
       o += vArr(CX, yPak + BH, yStok);
       o += box(BX, yStok, BW, BH, "Paket ve stok kontrolü", "Sistem Destek Uzmanı");
       o += vArr(CX, yStok + BH, yLogo);
       o += box(BX, yLogo, BW, BH, "Logo ERP stok sorgusu", "Depo · ürün · miktar", "system");
 
-      const d1 = 660;
+      const d1 = 770;
       o += vArr(CX, yLogo + BH, d1 - R);
       o += dia(CX, d1, R, "Stokta mı?");
 
-      const altY = 770;
+      const altY = 880;
       o += pathArr([CX, d1 + R, CX, d1 + R + 18, L, d1 + R + 18, L, altY], "d", NO);
       o += label(148, d1 + R + 14, "Hayır", NO);
       o += box(20, altY, 220, BH, "Alternatif ürün seç", "Sistem Destek");
       o += note(20, altY + BH + 16, "Sonra paket kontrolüne döner");
 
-      const d2 = 980;
+      const d2 = 1090;
       o += pathArr([L, altY + BH, L, d2 - R - 24, CX, d2 - R - 24, CX, d2 - R], "d", NO);
       o += vArr(CX, d1 + R, d2 - R, YES);
       o += label(412, d1 + R + 24, "Evet", YES);
       o += dia(CX, d2, R, "Paket dahilinde mi?");
 
-      const ceoY = 1090;
+      const ceoY = 1200;
       o += pathArr([CX, d2 + R, CX, d2 + R + 18, L, d2 + R + 18, L, ceoY], "d", NO);
       o += label(148, d2 + R + 14, "Hayır", NO);
       o += box(20, ceoY, 220, BH, "CO / CEO onayı", "Onay Bekliyor");
 
-      const d3x = L, d3y = 1258, d3r = 62;
+      const d3x = L, d3y = 1368, d3r = 62;
       o += vArr(L, ceoY + BH, d3y - d3r);
       o += dia(d3x, d3y, d3r, "Onaylandı mı?");
 
-      const retY = 1370;
+      const retY = 1480;
       o += pathArr([d3x - d3r, d3y, 48, d3y, 48, retY], "d", NO);
       o += label(8, d3y - 8, "Hayır", NO);
       o += box(8, retY, 200, BH, "Destek'e geri dön", "Güncelle veya iptal", "exception");
 
-      const seriY = 1520;
+      const seriY = 1640;
       o += pathArr([d3x + d3r, d3y, 250, d3y, 250, seriY - 28, CX, seriY - 28, CX, seriY], "d", YES);
       o += label(256, d3y - 8, "Evet · depo", YES);
       o += vArr(CX, d2 + R, seriY, YES);
       o += label(412, d2 + R + 28, "Evet · onay gerekmez", YES);
 
       o += box(BX, seriY, BW, BH, "Seri numarası seç", "Depo Sorumlusu · Logo");
-      const yIrs = 1622;
-      const yTek = 1724;
+      const yIrs = 1742;
+      const yTek = 1844;
       o += vArr(CX, seriY + BH, yIrs);
-      o += box(BX, yIrs, BW, BH, "Sevk irsaliyesi oluştur", "Logo ERP", "system");
+      o += box(BX, yIrs, BW, BH, "İrsaliye 1: Depo → GM", "Logo ERP · tek sevk merkeze", "system");
       o += vArr(CX, yIrs + BH, yTek);
-      o += box(BX, yTek, BW, BH, "Teslim al ve teknik kontrol", "Sistem Destek");
+      o += box(BX, yTek, BW, BH, "Teslim al ve teknik kontrol", "Sistem Destek · Genel Merkez");
 
-      const d4 = 1860;
+      const d4 = 1980;
       o += vArr(CX, yTek + BH, d4 - R);
       o += dia(CX, d4, R, "Uygun mu?");
 
-      const hasY = 1970;
+      const hasY = 2090;
       o += pathArr([CX, d4 + R, CX, d4 + R + 18, L, d4 + R + 18, L, hasY], "d", NO);
       o += label(148, d4 + R + 14, "Hasarlı", NO);
       o += box(20, hasY, 220, BH, "Hasar raporu", "Depo süreci yeniden başlar", "exception");
 
-      const formY = 2110;
-      o += vArr(CX, d4 + R, formY, YES);
+      const d5 = 2260;
+      o += vArr(CX, d4 + R, d5 - R, YES);
       o += label(412, d4 + R + 24, "Uygun", YES);
+      o += dia(CX, d5, R, "Teslim GM mi?");
+
+      const locY = 2370;
+      o += pathArr([CX, d5 + R, CX, d5 + R + 18, L, d5 + R + 18, L, locY], "d", NO);
+      o += label(148, d5 + R + 14, "Hayır", NO);
+      o += box(20, locY, 220, BH, "İrsaliye 2: GM → Lokasyon", "Kartal / Ankara / İzmir", "system");
+
+      const formY = 2520;
+      o += pathArr([L, locY + BH, L, formY - 28, CX, formY - 28, CX, formY], "d", NO);
+      o += vArr(CX, d5 + R, formY, YES);
+      o += label(412, d5 + R + 24, "Evet · tek irsaliye", YES);
       o += box(BX, formY, BW, BH, "Zimmet formu oluştur", "Sistem Destek");
-      const yImza = 2212;
-      const yEnd = 2314;
+      const yImza = 2622;
+      const yEnd = 2724;
       o += vArr(CX, formY + BH, yImza);
       o += box(BX, yImza, BW, BH, "Dijital imza / e-onay", "Çalışan · teslim alan");
       o += vArr(CX, yImza + BH, yEnd);
       o += box(BX, yEnd, BW, BH, "Zimmet tamamlandı", "Tamamlandı", "end");
 
       return chart(800, yEnd + BH + 24, o);
+    }
+
+    function ayrilisFlow() {
+      const CX = 400, BX = 270, BW = 260, BH = 68, R = 70, L = 130;
+      let o = "";
+      const y1 = 16, y2 = 118, y3 = 220, y4 = 322, y5 = 424;
+      o += box(BX, y1, BW, BH, "İK işten ayrılış kaydı", "İade Bekliyor", "start");
+      o += vArr(CX, y1 + BH, y2);
+      o += box(BX, y2, BW, BH, "Aktif zimmetleri getir", "Sistem", "system");
+      o += vArr(CX, y2 + BH, y3);
+      o += box(BX, y3, BW, BH, "Destek'e bildir", "Uygulama bildirimi", "system");
+      o += vArr(CX, y3 + BH, y4);
+      o += box(BX, y4, BW, BH, "Ürünleri teslim al", "Sistem Destek");
+      o += vArr(CX, y4 + BH, y5);
+      o += box(BX, y5, BW, BH, "Kontrol formu", "Model · seri · aksesuar · hasar");
+
+      const d1 = 560;
+      o += vArr(CX, y5 + BH, d1 - R);
+      o += dia(CX, d1, R, "Lokasyon aynı mı?");
+      const stopY = 670;
+      o += pathArr([CX, d1 + R, CX, d1 + R + 18, L, d1 + R + 18, L, stopY], "d", NO);
+      o += label(148, d1 + R + 14, "Hayır", NO);
+      o += box(20, stopY, 220, BH, "Teslim durur", "Teslim ≠ çalışan lokasyonu", "exception");
+
+      const y6 = 810;
+      o += vArr(CX, d1 + R, y6, YES);
+      o += label(412, d1 + R + 24, "Evet", YES);
+      o += box(BX, y6, BW, BH, "Cihaz durumu seç", "Yeniden / bakım / hurda");
+      const y7 = 912;
+      o += vArr(CX, y6 + BH, y7);
+      o += box(BX, y7, BW, BH, "İade Tamamla", "Sistem Destek");
+
+      const d2 = 1050;
+      o += vArr(CX, y7 + BH, d2 - R);
+      o += dia(CX, d2, R, "GM dışı teslim?");
+      const irs2Y = 1160;
+      o += pathArr([CX, d2 + R, CX, d2 + R + 18, L, d2 + R + 18, L, irs2Y], "d", YES);
+      o += label(148, d2 + R + 14, "Evet", YES);
+      o += box(20, irs2Y, 220, BH, "İkinci sevk irsaliyesi", "Lokasyon → Genel Merkez", "system");
+
+      const y8 = 1310;
+      o += pathArr([L, irs2Y + BH, L, y8 - 28, CX, y8 - 28, CX, y8], "d", YES);
+      o += vArr(CX, d2 + R, y8, NO);
+      o += label(412, d2 + R + 24, "Hayır · tek irsaliye", NO);
+      o += box(BX, y8, BW, BH, "Merkez depoya sevk", "Logo ERP irsaliye", "system");
+      const y9 = 1412, y10 = 1514;
+      o += vArr(CX, y8 + BH, y9);
+      o += box(BX, y9, BW, BH, "Asset durumunu güncelle", "Sistem", "system");
+      o += vArr(CX, y9 + BH, y10);
+      o += box(BX, y10, BW, BH, "Süreç kapatıldı", "Tamamlandı", "end");
+      return chart(800, y10 + BH + 24, o);
     }
 
     function devirFlow() {
@@ -250,15 +309,29 @@
       o += pathArr([CX, d1 + R, CX, d1 + R + 18, L, d1 + R + 18, L, stopY], "d", NO);
       o += label(148, d1 + R + 14, "Hayır", NO);
       o += box(20, stopY, 220, BH, "Devir durur", "Lokasyon uyuşmazlığı", "exception");
-      const y3 = 510;
-      o += vArr(CX, d1 + R, y3, YES);
+      const yMgr = 510;
+      o += vArr(CX, d1 + R, yMgr, YES);
       o += label(412, d1 + R + 24, "Evet", YES);
-      o += box(BX, y3, BW, BH, "Formu personele gönder", "Sistem Destek");
+      o += box(BX, yMgr, BW, BH, "Departman yöneticisi onayı", "Varsayılan parametrik akış");
+      const yCeo = 612;
+      o += vArr(CX, yMgr + BH, yCeo);
+      o += box(BX, yCeo, BW, BH, "CO / CEO onayı", "Onay yapısı değiştirilebilir");
+      const d2 = 750;
+      o += vArr(CX, yCeo + BH, d2 - R);
+      o += dia(CX, d2, R, "Onaylandı mı?");
+      const redY = 860;
+      o += pathArr([CX, d2 + R, CX, d2 + R + 18, L, d2 + R + 18, L, redY], "d", NO);
+      o += label(148, d2 + R + 14, "Hayır", NO);
+      o += box(20, redY, 220, BH, "İşlem sonlanır", "İlgili kullanıcıya bildirim", "exception");
+      const y3 = 1010;
+      o += vArr(CX, d2 + R, y3, YES);
+      o += label(412, d2 + R + 24, "Evet", YES);
+      o += box(BX, y3, BW, BH, "Eski zimmeti kapat", "Sistem · sevk yok", "system");
       const steps = [
-        [612, "Eski zimmeti kapat", "Sistem", "system"],
-        [714, "Yeni zimmet oluştur", "Geçmiş korunur", "system"],
-        [816, "İmza veya e-onay", "Yeni kullanıcı", ""],
-        [918, "Devir tamamlandı", "Fiziksel sevk yok", "end"],
+        [1112, "Yeni zimmet oluştur", "Geçmiş korunur", "system"],
+        [1214, "Yeni zimmet formu", "Sistem Destek", ""],
+        [1316, "İmza veya e-onay", "Yeni kullanıcı", ""],
+        [1418, "Devir tamamlandı", "Fiziksel sevk yok", "end"],
       ];
       let prev = y3;
       steps.forEach((s) => {
@@ -266,58 +339,65 @@
         o += box(BX, s[0], BW, BH, s[1], s[2], s[3]);
         prev = s[0];
       });
-      return chart(800, 918 + BH + 24, o);
+      return chart(800, 1418 + BH + 24, o);
     }
 
     function degisimFlow() {
       const CX = 400, BX = 270, BW = 260, BH = 68, R = 70, L = 130;
+      const RX = 660, RB = 540;
       let o = "";
-      const y1 = 16, y2 = 118, y3 = 220;
-      o += box(BX, y1, BW, BH, "Çalışan seç", "Sistem Destek", "start");
+      const y1 = 16, y2 = 118;
+      o += box(BX, y1, BW, BH, "Değişim talebi oluştur", "Sistem Destek", "start");
       o += vArr(CX, y1 + BH, y2);
-      o += box(BX, y2, BW, BH, "Mevcut cihaz ve paket", "Sistem", "system");
-      o += vArr(CX, y2 + BH, y3);
-      o += box(BX, y3, BW, BH, "Yeni cihaz seç", "Talep Oluşturuldu");
-      const d2 = 358;
-      o += vArr(CX, y3 + BH, d2 - R);
-      o += dia(CX, d2, R, "Paket dahilinde mi?");
-      const ceoY = 468;
-      o += pathArr([CX, d2 + R, CX, d2 + R + 18, L, d2 + R + 18, L, ceoY], "d", NO);
-      o += label(148, d2 + R + 14, "Hayır", NO);
-      o += box(20, ceoY, 220, BH, "CO / CEO onayı", "Onay Bekliyor");
-      const d3y = 636, d3r = 62;
-      o += vArr(L, ceoY + BH, d3y - d3r);
-      o += dia(L, d3y, d3r, "Onaylandı mı?");
-      const retY = 748;
-      o += pathArr([L - d3r, d3y, 48, d3y, 48, retY], "d", NO);
-      o += label(8, d3y - 8, "Hayır", NO);
-      o += box(8, retY, 200, BH, "Destek'e geri dön", "Reddedildi", "exception");
-      const depoY = 900;
-      o += pathArr([L + d3r, d3y, 250, d3y, 250, depoY - 28, CX, depoY - 28, CX, depoY], "d", YES);
-      o += label(256, d3y - 8, "Evet · depo", YES);
-      o += vArr(CX, d2 + R, depoY, YES);
-      o += label(412, d2 + R + 28, "Evet · onay gerekmez", YES);
-      o += box(BX, depoY, BW, BH, "Depo · sevk · teknik", "İşe başlangıç ile aynı hat");
-      const yEski = 1002, yDurum = 1104;
-      o += vArr(CX, depoY + BH, yEski);
-      o += box(BX, yEski, BW, BH, "Eski cihazı teslim al", "Sistem Destek");
-      o += vArr(CX, yEski + BH, yDurum);
-      o += box(BX, yDurum, BW, BH, "Eski cihaz durumu", "Yeniden / bakım / hurda");
-      const d4 = 1240;
-      o += vArr(CX, yDurum + BH, d4 - R);
-      o += dia(CX, d4, R, "Teslim ve durum OK?");
-      const noY = 1350;
-      o += pathArr([CX, d4 + R, CX, d4 + R + 18, L, d4 + R + 18, L, noY], "d", NO);
-      o += label(148, d4 + R + 14, "Hayır", NO);
-      o += box(20, noY, 220, BH, "Süreç kapanmaz", "Eksik teslim veya durum", "exception");
-      const formY = 1490;
-      o += vArr(CX, d4 + R, formY, YES);
-      o += label(412, d4 + R + 24, "Evet", YES);
-      o += box(BX, formY, BW, BH, "Yeni zimmet formu", "Sistem Destek");
-      const yImza = 1592, yEnd = 1694;
-      o += vArr(CX, formY + BH, yImza);
-      o += box(BX, yImza, BW, BH, "İmza veya e-onay", "Çalışan");
-      o += vArr(CX, yImza + BH, yEnd);
+      o += box(BX, y2, BW, BH, "İlk teknik inceleme", "Sistem Destek Uzmanı");
+
+      const d1 = 256;
+      o += vArr(CX, y2 + BH, d1 - R);
+      o += dia(CX, d1, R, "Çözülebilir mi?");
+      const closeY = 366;
+      o += pathArr([CX, d1 + R, CX, d1 + R + 18, RX, d1 + R + 18, RX, closeY], "d", YES);
+      o += label(520, d1 + R + 14, "Evet", YES);
+      o += box(RB, closeY, 220, BH, "Süreç kapanır", "Sorun yerinde çözüldü", "end");
+
+      const yServ = 366;
+      o += pathArr([CX, d1 + R, CX, d1 + R + 18, L, d1 + R + 18, L, yServ], "d", NO);
+      o += label(148, d1 + R + 14, "Hayır", NO);
+      o += box(20, yServ, 220, BH, "Teknik servise gönder", "Rapor zorunlu");
+      const yRep = 468;
+      o += vArr(L, yServ + BH, yRep);
+      o += box(20, yRep, 220, BH, "Servis raporunu yükle", "Sisteme kaydedilir", "system");
+
+      const d2x = L, d2y = 620, d2r = 68;
+      o += vArr(L, yRep + BH, d2y - d2r);
+      o += dia(d2x, d2y, d2r, "Değişim mi?");
+
+      const yOnar1 = 760, yOnar2 = 862, yOnar3 = 964, yOnar4 = 1066;
+      o += pathArr([d2x + d2r, d2y, RX, d2y, RX, yOnar1], "d", NO);
+      o += label(250, d2y - 10, "Hayır · onarım", NO);
+      o += box(RB, yOnar1, 220, BH, "Onarım onayı", "Onarıma tabi");
+      o += vArr(RX, yOnar1 + BH, yOnar2);
+      o += box(RB, yOnar2, 220, BH, "CO / CEO onayı", "Onarım kararı");
+      o += vArr(RX, yOnar2 + BH, yOnar3);
+      o += box(RB, yOnar3, 220, BH, "Onarım yapılır", "Teknik servis");
+      o += vArr(RX, yOnar3 + BH, yOnar4);
+      o += box(RB, yOnar4, 220, BH, "Kullanıma devam", "Yeni zimmet yok", "end");
+
+      const yCh1 = 760, yCh2 = 862, yCh3 = 964;
+      o += pathArr([d2x - d2r, d2y, 48, d2y, 48, yCh1], "d", YES);
+      o += label(8, d2y - 10, "Evet", YES);
+      o += box(8, yCh1, 200, BH, "Değişim kararı", "Emsal ürün de onaya tabi");
+      o += vArr(48, yCh1 + BH, yCh2);
+      o += box(8, yCh2, 200, BH, "Yönetici onayı", "Departman yöneticisi");
+      o += vArr(48, yCh2 + BH, yCh3);
+      o += box(8, yCh3, 200, BH, "CO / CEO onayı", "Değişim onayı");
+
+      const yNew = 1220;
+      o += pathArr([108, yCh3 + BH, 108, yNew - 28, CX, yNew - 28, CX, yNew], "d", YES);
+      o += box(BX, yNew, BW, BH, "Yeni zimmet süreci", "İşe başlangıç ile aynı hat");
+      const yOld = 1322, yEnd = 1424;
+      o += vArr(CX, yNew + BH, yOld);
+      o += box(BX, yOld, BW, BH, "Eski cihaz durumu", "Yeniden / bakım / hurda");
+      o += vArr(CX, yOld + BH, yEnd);
       o += box(BX, yEnd, BW, BH, "Değişim tamamlandı", "Eski kapanır · yeni açılır", "end");
       return chart(800, yEnd + BH + 24, o);
     }
@@ -339,58 +419,60 @@
     const pages = {
       ozet() {
         return `
-          <div class="note"><b>TO-BE.</b> Ana hat yukarıdan aşağı okunur. Hayır / ret solda kalır, Evet sağdan devam eder. Ret sonrası süreç kapanmaz; Destek’e döner.</div>
+          <div class="note"><b>V1.1 (31.08.2026).</b> Lokasyon teslimlerinde iki irsaliye (Depo→GM, GM→lokasyon). Cihaz değişimi teknik servis + onarım/değişim onayına bağlandı. Zimmet devri varsayılan olarak yönetici ve CO/CEO onayına tabi.</div>
           ${legend()}
           <div class="panel">
             <h2>Süreçler</h2>
             ${table(["Süreç", "Başlangıç", "Bitiş"], [
               ["İşe Başlangıç", "İK talep", "Zimmet + imza · Tamamlandı"],
-              ["İşten Ayrılış", "İK iade kaydı", "Logo merkez sevk"],
-              ["Zimmet Devri", "Destek kayıt seçer", "Yeni zimmet · sevk yok"],
-              ["Cihaz Değişimi", "Destek talep", "Eski kapanır · yeni açılır"],
+              ["İşten Ayrılış", "İK iade kaydı", "Logo merkez sevk · gerekirse 2. irsaliye"],
+              ["Zimmet Devri", "Destek kayıt seçer", "Yönetici + CO/CEO · yeni zimmet · sevk yok"],
+              ["Cihaz Değişimi", "Destek talep + teknik inceleme", "Onarım veya yeni zimmet"],
+            ])}
+          </div>
+          <div class="panel">
+            <h2>V1.1’de değişen kurallar</h2>
+            ${table(["Konu", "Kural"], [
+              ["Genel Merkez teslim", "Tek irsaliye: Depo → Genel Merkez → teknik → zimmet"],
+              ["Lokasyon teslim", "İki irsaliye: Depo → GM, ardından GM → hedef lokasyon"],
+              ["İade teslim lokasyonu", "Çalışan lokasyonu ile farklı olamaz"],
+              ["Zimmet devri onayı", "Varsayılan: Departman Yöneticisi → CO/CEO (parametrik)"],
+              ["Cihaz değişimi", "Servis raporu zorunlu. Onarım veya değişim ayrı onaylanır"],
             ])}
           </div>`;
       },
       onb() {
         return `${legend()}
           <div class="note"><b>Stok kuralı.</b> Stokta mı? → Evet ise doğrudan Paket dahilinde mi? Hayır ise önce alternatif ürün seçilir, sonra yine paket kontrolüne gelinir.</div>
+          <div class="note"><b>Lokasyon / irsaliye.</b> Teslim lokasyonu LDAP çalışma lokasyonundan gelir, değiştirilebilir. Her talep önce Depo → Genel Merkez gider ve teknik kontrol merkeze yapılır. Teslim GM değilse ikinci irsaliye (GM → lokasyon) oluşur, sonra zimmet.</div>
           <div class="panel">
             <h2>İşe başlangıç — uçtan uca</h2>
-            <p>İK talep → Destek stok/paket → gerekirse CO/CEO → depo → teknik → form → çalışan imzası.</p>
+            <p>İK talep → lokasyon → Destek stok/paket → gerekirse CO/CEO → depo → irsaliye 1 → teknik → gerekirse irsaliye 2 → form → çalışan imzası.</p>
             ${onbFlow()}
           </div>`;
       },
       ayrilis() {
         return `${legend()}
+          <div class="note"><b>Teslim lokasyonu.</b> İade teslim lokasyonu çalışan lokasyonu ile aynı olmak zorundadır. Genel merkez dışı teslimde ikinci sevk irsaliyesi oluşur.</div>
           <div class="panel">
             <h2>İşten ayrılış / zimmet iadesi</h2>
-            ${stackFlow([
-              ["İK işten ayrılış kaydı", "İade Bekliyor", "start"],
-              ["Aktif zimmetleri getir", "Sistem", "system"],
-              ["Destek'e bildir", "Uygulama bildirimi", "system"],
-              ["Ürünleri teslim al", "Sistem Destek"],
-              ["Kontrol formu", "Model · seri · aksesuar · hasar"],
-              ["Cihaz durumu seç", "Yeniden / bakım / hurda"],
-              ["İade Tamamla", "Sistem Destek"],
-              ["Merkez depoya sevk", "Logo ERP irsaliye", "system"],
-              ["Asset durumunu güncelle", "Sistem", "system"],
-              ["Süreç kapatıldı", "Tamamlandı", "end"],
-            ])}
+            ${ayrilisFlow()}
           </div>`;
       },
       devir() {
         return `${legend()}
           <div class="panel">
             <h2>Zimmet devri</h2>
-            <p>Aynı lokasyon zorunlu. Fiziksel depo transferi yok.</p>
+            <p>Aynı lokasyon zorunlu. Fiziksel depo transferi yok. Varsayılan onay: Departman Yöneticisi → CO/CEO (sistem yöneticisi değiştirebilir).</p>
             ${devirFlow()}
           </div>`;
       },
       degisim() {
         return `${legend()}
+          <div class="note"><b>V1.1.</b> Değişim doğrudan yeni cihaz seçimi değildir. Önce Destek incelemesi, çözülemezse teknik servis raporu. Onarım ve değişim ayrı onaylanır. Emsal ürün verilse bile onay yeniden çalışır. Rapor olmadan değişim yapılamaz.</div>
           <div class="panel">
             <h2>Cihaz değişimi</h2>
-            <p>Paket dışı onay reddedilirse Destek’e döner.</p>
+            <p>İnceleme → servis raporu → onarım (onay + CO/CEO) veya değişim (yönetici + CO/CEO + yeni zimmet).</p>
             ${degisimFlow()}
           </div>`;
       },
@@ -398,14 +480,15 @@
         return `<div class="panel">
           <h2>Doküman adımı → mockup ekranı</h2>
           ${table(["Doküman adımı", "Mockup", "Sonraki"], [
-            ["İK personel seçer", "Yeni işe başlangıç", "Destek kontrolü"],
+            ["İK personel + lokasyon", "Yeni işe başlangıç", "Destek kontrolü"],
             ["Paket + Logo stok", "İşe başlangıç detay", "Depo veya onay"],
             ["CO / CEO", "Onaylarım", "Depo veya Destek’e dönüş"],
-            ["Seri + irsaliye", "Depo hazırlık", "Teknik kontrol"],
+            ["İrsaliye 1 Depo → GM", "Depo hazırlık", "Teknik kontrol"],
+            ["İrsaliye 2 GM → lokasyon", "Depo / sevk", "Zimmet formu"],
             ["Form + imza", "Zimmet formu / Onaylarım", "Tamamlandı"],
-            ["İade", "İşten ayrılış detay", "Logo sevk"],
-            ["Devir", "Cihaz Zimmetleri → Devir", "Çalışan onay"],
-            ["Cihaz değişimi", "Değişim talebi / detay", "Yeni zimmet formu"],
+            ["İade + teslim lokasyonu", "İşten ayrılış detay", "Logo sevk · gerekirse 2. irsaliye"],
+            ["Devir + yönetici/CO onay", "Cihaz Zimmetleri → Devir", "Çalışan onay"],
+            ["İlk inceleme / servis raporu", "Değişim talebi / detay", "Onarım veya yeni zimmet"],
           ])}
         </div>`;
       },
@@ -425,7 +508,7 @@
         };
       });
       document.getElementById("app").innerHTML = pages[current]() +
-        `<footer>Kaynak: Zimmet Gereksinim Dokümanı V2</footer>`;
+        `<footer>Kaynak: Zimmet Gereksinim Dokümanı V1.1 · 31.08.2026</footer>`;
     }
     render();
   </script>
