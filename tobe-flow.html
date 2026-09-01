@@ -64,7 +64,7 @@
 <body>
   <header>
     <h1>IT Asset / Zimmet — TO-BE Business Flow</h1>
-    <div class="sub">V1.1 · 31.08.2026 · ana hat yukarıdan aşağı, Hayır dalları solda</div>
+    <div class="sub">V1.2 · 01.09.2026 · ana hat yukarıdan aşağı, Hayır dalları solda</div>
     <nav id="tabs"></nav>
   </header>
   <main id="app"></main>
@@ -296,50 +296,71 @@
     }
 
     function devirFlow() {
-      const CX = 400, BX = 270, BW = 260, BH = 68, R = 70, L = 130;
+      const CX = 400, BX = 270, BW = 260, BH = 68, R = 70, L = 130, RX = 660, RB = 540;
       let o = "";
-      const y1 = 16, y2 = 118;
-      o += box(BX, y1, BW, BH, "Zimmet kaydını seç", "Cihaz Zimmetleri", "start");
+      const y1 = 16, y2 = 118, y3 = 220, yMgr = 322, yCeo = 424;
+      o += box(BX, y1, BW, BH, "Asset / zimmet seç", "Sistem Destek Uzmanı", "start");
       o += vArr(CX, y1 + BH, y2);
-      o += box(BX, y2, BW, BH, "Yeni kullanıcı seç", "Sistem Destek · LDAP");
-      const d1 = 256;
-      o += vArr(CX, y2 + BH, d1 - R);
-      o += dia(CX, d1, R, "Aynı lokasyon mu?");
-      const stopY = 366;
-      o += pathArr([CX, d1 + R, CX, d1 + R + 18, L, d1 + R + 18, L, stopY], "d", NO);
-      o += label(148, d1 + R + 14, "Hayır", NO);
-      o += box(20, stopY, 220, BH, "Devir durur", "Lokasyon uyuşmazlığı", "exception");
-      const yMgr = 510;
-      o += vArr(CX, d1 + R, yMgr, YES);
-      o += label(412, d1 + R + 24, "Evet", YES);
+      o += box(BX, y2, BW, BH, "Yeni kullanıcı seç", "LDAP · sicil · lokasyon");
+      o += vArr(CX, y2 + BH, y3);
+      o += box(BX, y3, BW, BH, "Lokasyon farkını kontrol et", "Sistem · kaynak vs hedef", "system");
+      o += vArr(CX, y3 + BH, yMgr);
       o += box(BX, yMgr, BW, BH, "Departman yöneticisi onayı", "Varsayılan parametrik akış");
-      const yCeo = 612;
       o += vArr(CX, yMgr + BH, yCeo);
       o += box(BX, yCeo, BW, BH, "CO / CEO onayı", "Onay yapısı değiştirilebilir");
-      const d2 = 750;
-      o += vArr(CX, yCeo + BH, d2 - R);
-      o += dia(CX, d2, R, "Onaylandı mı?");
-      const redY = 860;
-      o += pathArr([CX, d2 + R, CX, d2 + R + 18, L, d2 + R + 18, L, redY], "d", NO);
-      o += label(148, d2 + R + 14, "Hayır", NO);
-      o += box(20, redY, 220, BH, "İşlem sonlanır", "İlgili kullanıcıya bildirim", "exception");
-      const y3 = 1010;
-      o += vArr(CX, d2 + R, y3, YES);
-      o += label(412, d2 + R + 24, "Evet", YES);
-      o += box(BX, y3, BW, BH, "Eski zimmeti kapat", "Sistem · sevk yok", "system");
-      const steps = [
-        [1112, "Yeni zimmet oluştur", "Geçmiş korunur", "system"],
-        [1214, "Yeni zimmet formu", "Sistem Destek", ""],
-        [1316, "İmza veya e-onay", "Yeni kullanıcı", ""],
-        [1418, "Devir tamamlandı", "Fiziksel sevk yok", "end"],
-      ];
-      let prev = y3;
-      steps.forEach((s) => {
-        o += vArr(CX, prev + BH, s[0]);
-        o += box(BX, s[0], BW, BH, s[1], s[2], s[3]);
-        prev = s[0];
-      });
-      return chart(800, 1418 + BH + 24, o);
+
+      const d1 = 562;
+      o += vArr(CX, yCeo + BH, d1 - R);
+      o += dia(CX, d1, R, "Onaylandı mı?");
+      const redY = 680;
+      o += pathArr([CX, d1 + R, CX, d1 + R + 18, L, d1 + R + 18, L, redY], "d", NO);
+      o += label(148, d1 + R + 14, "Hayır", NO);
+      o += box(20, redY, 220, BH, "İşlem sonlanır", "Kullanıcıya bildirim", "exception");
+
+      const d2 = 820;
+      o += vArr(CX, d1 + R, d2 - R, YES);
+      o += label(412, d1 + R + 24, "Evet", YES);
+      o += dia(CX, d2, R, "Aynı lokasyon mu?");
+
+      const sameY = 960;
+      o += pathArr([CX, d2 + R, CX, d2 + R + 18, RX, d2 + R + 18, RX, sameY], "d", YES);
+      o += label(520, d2 + R + 14, "Evet · sevk yok", YES);
+      o += box(RB, sameY, 220, BH, "Sevk / irsaliye yok", "Fiziksel taşıma yapılmaz", "system");
+
+      const d3y = 1000, d3r = 62;
+      o += pathArr([CX, d2 + R, CX, d2 + R + 18, L, d2 + R + 18, L, d3y - d3r], "d", NO);
+      o += label(148, d2 + R + 14, "Hayır · sevk var", NO);
+      o += dia(L, d3y, d3r, "İki şube mi?");
+      o += note(8, d3y + d3r + 16, "Kaynak ve hedef GM dışı");
+
+      const dirY = 1140, dirX = 215, dirW = 170;
+      o += pathArr([L + d3r, d3y, dirX + dirW / 2, d3y, dirX + dirW / 2, dirY], "d", NO);
+      o += label(198, d3y - 10, "Hayır · GM dahil", NO);
+      o += box(dirX, dirY, dirW, BH, "Tek irsaliye", "Kaynak → hedef · Logo ERP", "system");
+      o += note(dirX, dirY + BH + 16, "Senaryo 1 · GM → Kartal");
+
+      const yH1 = 1280, yH2 = 1382, yH3 = 1484;
+      o += vArr(L, d3y + d3r, yH1, YES);
+      o += label(148, d3y + d3r + 18, "Evet · hub", YES);
+      o += box(20, yH1, 220, BH, "İrsaliye 1", "Kaynak → Genel Merkez · Logo ERP", "system");
+      o += vArr(L, yH1 + BH, yH2);
+      o += box(20, yH2, 220, BH, "GM teknik kontrol", "Sistem Destek · Genel Merkez");
+      o += vArr(L, yH2 + BH, yH3);
+      o += box(20, yH3, 220, BH, "İrsaliye 2", "GM → hedef · Logo ERP", "system");
+      o += note(20, yH3 + BH + 16, "Senaryo 2 · Beşyol → GM → Kartal");
+
+      const yClose = 1640, yForm = 1742, ySign = 1844, yEnd = 1946;
+      o += pathArr([RX, sameY + BH, RX, yClose - 28, CX, yClose - 28, CX, yClose], "d", YES);
+      o += pathArr([dirX + dirW / 2, dirY + BH, dirX + dirW / 2, yClose - 28, CX, yClose - 28, CX, yClose], "d", NO);
+      o += pathArr([L, yH3 + BH, L, yClose - 28, CX, yClose - 28, CX, yClose], "d", YES);
+      o += box(BX, yClose, BW, BH, "Eski zimmet kapat · yeni aç", "Asset geçmişi korunur", "system");
+      o += vArr(CX, yClose + BH, yForm);
+      o += box(BX, yForm, BW, BH, "Yeni zimmet formu", "Sistem Destek · teslim");
+      o += vArr(CX, yForm + BH, ySign);
+      o += box(BX, ySign, BW, BH, "İmza veya e-onay", "Yeni kullanıcı");
+      o += vArr(CX, ySign + BH, yEnd);
+      o += box(BX, yEnd, BW, BH, "Devir tamamlandı", "İrsaliyeler zimmet kaydında", "end");
+      return chart(800, yEnd + BH + 24, o);
     }
 
     function degisimFlow() {
@@ -419,24 +440,28 @@
     const pages = {
       ozet() {
         return `
-          <div class="note"><b>V1.1 (31.08.2026).</b> Lokasyon teslimlerinde iki irsaliye (Depo→GM, GM→lokasyon). Cihaz değişimi teknik servis + onarım/değişim onayına bağlandı. Zimmet devri varsayılan olarak yönetici ve CO/CEO onayına tabi.</div>
+          <div class="note"><b>V1.2 (01.09.2026).</b> Zimmet devri aynı veya farklı lokasyonda yapılabilir. Farklı lokasyonda Logo ERP sevk irsaliyesi zorunlu; iki şube arası Genel Merkez hub (İrsaliye 1 + teknik kontrol + İrsaliye 2). Asset geçmişi korunur.</div>
+          <div class="note"><b>V1.1 (31.08.2026).</b> İşe başlangıç lokasyon teslimlerinde iki irsaliye (Depo→GM, GM→lokasyon). Cihaz değişimi teknik servis + onarım/değişim onayına bağlandı. Zimmet devri varsayılan olarak yönetici ve CO/CEO onayına tabi.</div>
           ${legend()}
           <div class="panel">
             <h2>Süreçler</h2>
             ${table(["Süreç", "Başlangıç", "Bitiş"], [
               ["İşe Başlangıç", "İK talep", "Zimmet + imza · Tamamlandı"],
               ["İşten Ayrılış", "İK iade kaydı", "Logo merkez sevk · gerekirse 2. irsaliye"],
-              ["Zimmet Devri", "Destek kayıt seçer", "Yönetici + CO/CEO · yeni zimmet · sevk yok"],
+              ["Zimmet Devri", "Destek asset + yeni kullanıcı seçer", "Yönetici + CO/CEO · aynı lokasyonda sevk yok · farklı lokasyonda Logo irsaliyesi / GM hub"],
               ["Cihaz Değişimi", "Destek talep + teknik inceleme", "Onarım veya yeni zimmet"],
             ])}
           </div>
           <div class="panel">
-            <h2>V1.1’de değişen kurallar</h2>
+            <h2>V1.1–V1.2 kuralları</h2>
             ${table(["Konu", "Kural"], [
               ["Genel Merkez teslim", "Tek irsaliye: Depo → Genel Merkez → teknik → zimmet"],
               ["Lokasyon teslim", "İki irsaliye: Depo → GM, ardından GM → hedef lokasyon"],
               ["İade teslim lokasyonu", "Çalışan lokasyonu ile farklı olamaz"],
               ["Zimmet devri onayı", "Varsayılan: Departman Yöneticisi → CO/CEO (parametrik)"],
+              ["Devir aynı lokasyon", "Fiziksel sevk ve irsaliye yok. Onay sonrası eski zimmet kapanır, yeni form oluşur"],
+              ["Devir farklı + GM", "CEO sonrası Destek tek Logo irsaliyesi keser (kaynak → hedef), basım, teslim, yeni zimmet"],
+              ["Devir iki şube (hub)", "İrsaliye 1 kaynak → GM · GM teknik kontrol · İrsaliye 2 GM → hedef. İkisi de zimmet kaydında"],
               ["Cihaz değişimi", "Servis raporu zorunlu. Onarım veya değişim ayrı onaylanır"],
             ])}
           </div>`;
@@ -461,9 +486,10 @@
       },
       devir() {
         return `${legend()}
+          <div class="note"><b>Devir tipleri.</b> Aynı lokasyonda sevk ve irsaliye yok. Kaynak veya hedef Genel Merkez ise tek Logo ERP irsaliyesi (Senaryo 1: GM → Kartal). Her iki uç da şube ise hub: İrsaliye 1 kaynak → GM, teknik kontrol, İrsaliye 2 GM → hedef (Senaryo 2: Beşyol → Kartal). Her iki irsaliye ilgili zimmet kaydında görünür. Asset geçmişi korunur.</div>
           <div class="panel">
             <h2>Zimmet devri</h2>
-            <p>Aynı lokasyon zorunlu. Fiziksel depo transferi yok. Varsayılan onay: Departman Yöneticisi → CO/CEO (sistem yöneticisi değiştirebilir).</p>
+            <p>Destek asset ve yeni kullanıcıyı seçer. Sistem lokasyon farkını kontrol eder. Varsayılan onay (parametrik): Departman Yöneticisi → CO / CEO. Onay sonrası aynı lokasyonda doğrudan zimmet; farklı lokasyonda sevk, sonra yeni zimmet formu.</p>
             ${devirFlow()}
           </div>`;
       },
@@ -487,7 +513,10 @@
             ["İrsaliye 2 GM → lokasyon", "Depo / sevk", "Zimmet formu"],
             ["Form + imza", "Zimmet formu / Onaylarım", "Tamamlandı"],
             ["İade + teslim lokasyonu", "İşten ayrılış detay", "Logo sevk · gerekirse 2. irsaliye"],
-            ["Devir + yönetici/CO onay", "Cihaz Zimmetleri → Devir", "Çalışan onay"],
+            ["Devir + yönetici/CO onay", "Zimmet Devri detay / Onaylarım", "Aynı lokasyon: form · farklı: sevk"],
+            ["Devir irsaliye 1 (hub)", "Zimmet Devri · Logo ERP", "GM teknik kontrol"],
+            ["Devir irsaliye 2 / tek sevk", "Zimmet Devri · Logo ERP", "Teslim + yeni zimmet formu"],
+            ["Devir irsaliyeleri", "Zimmet kaydı detay", "Aynı süreç altındaki tüm sevkler"],
             ["İlk inceleme / servis raporu", "Değişim talebi / detay", "Onarım veya yeni zimmet"],
           ])}
         </div>`;
@@ -508,7 +537,7 @@
         };
       });
       document.getElementById("app").innerHTML = pages[current]() +
-        `<footer>Kaynak: Zimmet Gereksinim Dokümanı V1.1 · 31.08.2026</footer>`;
+        `<footer>Kaynak: Zimmet Gereksinim Dokümanı V1.1 · 31.08.2026 · Zimmet Devri V1.2 · 01.09.2026</footer>`;
     }
     render();
   </script>
